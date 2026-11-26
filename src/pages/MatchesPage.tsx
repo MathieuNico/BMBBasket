@@ -1,5 +1,6 @@
 import { Icon } from '../components/Icon'
 import { byDate, formatDate, Header } from '../components/ui'
+import { useBoard, Whiteboard } from '../components/Whiteboard'
 import { useStore } from '../data/store'
 import type { Match } from '../lib/types'
 
@@ -32,10 +33,14 @@ function MatchList({ title, matches }: { title: string; matches: Match[] }) {
 export function MatchesPage() {
   const { matches } = useStore()
   const { upcoming, past } = byDate(matches)
+  const board = useBoard()
 
   return (
     <>
-      <Header title="Matchs" />
+      <Header title="Matchs">
+        <button className="button accent" onClick={board.show}>Ardoise</button>
+      </Header>
+      {board.open && <Whiteboard onClose={board.hide} />}
       <main>
         {matches.length === 0 ? (
           <div className="empty">

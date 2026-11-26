@@ -1,5 +1,7 @@
-import { describe, expect, it } from 'vitest'
-import { actionLine, COURT, frameAt, isInvalid, newPlay, newStep, nextPlayerId, playScene, removePlayer, stateAt } from './engine'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { draftKey, readDraft, writeDraft } from './drafts'
+import { actionLine, COURT, frameAt, isInvalid, marking, newPlay, newStep, nextPlayerId, playScene, removePlayer, stateAt } from './engine'
+import { applyAttack, applyDefense, ATTACKS, DEFENSES } from './formations'
 import { length, pointAt, simplify, trim } from './geometry'
 import { parseBackup } from './backup'
 import { attendanceOf, clock, copySession, itemFor, newDrill, newSession } from './training'
@@ -118,6 +120,63 @@ describe('séances', () => {
   it('compte les présences d’un joueur', () => {
     const sessions = (['present', 'absent', 'excused', 'present'] as const).map((p) => ({ ...newSession(''), attendance: { a: p } }))
     expect(attendanceOf('a', [...sessions, newSession('')])).toEqual({ present: 2, total: 4 })
+  })
+})
+
+describe('placements de départ', () => {
+  const [, fiveOut] = ATTACKS
+  const [man, zone] = DEFENSES
+
+  it('fait suivre une défense individuelle', () => {
+    const play = newPlay()
+    const { start } = applyAttack(play, fiveOut)
+    expect(start!.O4).toEqual(fiveOut.positions[3])
+    expect(start!.X4).toEqual(marking(fiveOut.positions[3]))
+  })
+
+  it('laisse une zone en place quand l’attaque change', () => {
+    const play = { ...newPlay(), ...applyDefense(newPlay(), zone) }
+    expect(play.defense).toBe(true)
+    expect(applyAttack(play, fiveOut).start!.X1).toEqual(zone.positions[0])
+    expect(applyDefense(play, man).start!.X1).toEqual(marking(play.start.O1))
+  })
+
+  it('garde tout le monde sur le demi-terrain', () => {
+    for (const f of [...ATTACKS, ...DEFENSES.slice(1)]) {
+      expect(f.positions).toHaveLength(5)
+      for (const p of f.positions) {
+        expect(p.x).toBeGreaterThanOrEqual(0)
+        expect(p.x).toBeLessThanOrEqual(COURT.width)
+        expect(p.y).toBeGreaterThanOrEqual(0)
+        expect(p.y).toBeLessThanOrEqual(COURT.half)
+      }
+    }
+  })
+})
+
+describe('brouillons', () => {
+  beforeEach(() => {
+    const memory = new Map<string, string>()
+    vi.stubGlobal('localStorage', {
+      getItem: (k: string) => memory.get(k) ?? null,
+      setItem: (k: string, v: string) => memory.set(k, v),
+      removeItem: (k: string) => memory.delete(k),
+    })
+  })
+
+  it('distingue création, modification et création depuis une séance', () => {
+    const keys = [draftKey('drills'), draftKey('drills', 'abc'), draftKey('drills', undefined, 'seance'), draftKey('plays')]
+    expect(new Set(keys).size).toBe(4)
+  })
+
+  it('reprend un dessin et ignore un brouillon abîmé', () => {
+    const draft = { value: pickAndRoll(), base: '' }
+    writeDraft('k', draft)
+    expect(readDraft('plays', 'k')).toEqual(draft)
+    writeDraft('k', { value: { id: 'x' }, base: '' })
+    expect(readDraft('plays', 'k')).toBeUndefined()
+    localStorage.setItem('k', 'pas du json')
+    expect(readDraft('plays', 'k')).toBeUndefined()
   })
 })
 

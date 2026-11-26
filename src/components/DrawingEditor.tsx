@@ -1,9 +1,8 @@
-import { useRef, useState, type PointerEvent } from 'react'
+import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react'
 import {
   actionLine,
   applyStep,
   COURT,
-  courtHeight,
   isInvalid,
   isMovement,
   newStep,
@@ -16,7 +15,7 @@ import {
 } from '../lib/engine'
 import { dist, distanceToLine, length, simplify, toPath } from '../lib/geometry'
 import type { Action, ActionKind, PlayerId, PlayerKind, Point, Scene, Step } from '../lib/types'
-import { Court } from './Court'
+import { Court, courtPoint } from './Court'
 import { Diagram } from './Diagram'
 import { Icon } from './Icon'
 import { PlayPlayer } from './PlayPlayer'
@@ -70,19 +69,31 @@ interface Props {
   /** Saisie de texte. */
   onPatch(changes: Partial<Scene>): void
   history: { canUndo: boolean; canRedo: boolean; undo(): void; redo(): void }
+  /** Ouvre le choix des placements de départ. */
+  onFormations?(): void
+  /** Message affiché au-dessus du terrain. */
+  notice?: ReactNode
 }
 
-/** Dessin d'un schéma, temps par temps, au doigt. */
-export function DrawingEditor({ scene, free, defense = true, initialTool, onCommit, onPatch, history }: Props) {
+/** Dessin d'un schéma, temps par temps, au doigt. Le terrain et les outils tiennent sur un écran. */
+export function DrawingEditor({ scene, free, defense = true, initialTool, onCommit, onPatch, history, onFormations, notice }: Props) {
   const { toast } = useFeedback()
   const [position, setIndex] = useState(0)
   const [selected, setSelected] = useState<Tool>(initialTool)
   const [drag, setDrag] = useState<Drag | null>(null)
   const [preview, setPreview] = useState(false)
   const svg = useRef<SVGSVGElement>(null)
+  const dots = useRef<HTMLDivElement>(null)
 
   // annuler peut retirer le temps affiché
   const index = Math.min(position, scene.steps.length - 1)
+
+  // garde le temps affiché visible quand la liste défile (sans faire défiler la page)
+  useEffect(() => {
+    const list = dots.current
+    const active = list?.querySelector<HTMLElement>('.active')
+    if (list && active) list.scrollLeft = active.offsetLeft - list.offsetLeft - list.clientWidth / 2
+  }, [index, scene.steps.length])
   const step = scene.steps[index]
   const tool: Tool = index > 0 && isElement(selected) ? 'cut' : selected
   const state = stateAt(scene, index)
@@ -95,11 +106,7 @@ export function DrawingEditor({ scene, free, defense = true, initialTool, onComm
   const setBallAction = (action: Action) =>
     setActions([...step.actions.filter((a) => !(a.player === action.player && (a.kind === 'pass' || a.kind === 'shot'))), action])
 
-  const toCourt = (e: PointerEvent): Point => {
-    const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(svg.current!.getScreenCTM()!.inverse())
-    const clamp = (v: number, max: number) => Math.round(Math.max(-4, Math.min(max + 4, v)) * 10) / 10
-    return { x: clamp(p.x, COURT.width), y: clamp(p.y, courtHeight(scene.court)) }
-  }
+  const toCourt = (e: PointerEvent) => courtPoint(svg.current!, e, scene.court)
 
   const nearest = <T,>(p: Point, items: T[], where: (item: T) => Point, radius: number): T | undefined =>
     items
@@ -242,7 +249,7 @@ export function DrawingEditor({ scene, free, defense = true, initialTool, onComm
   const elements = free ? ELEMENTS : ELEMENTS.slice(0, 1)
   const tools = [...elements, ...ACTIONS]
   let hint = tools.find((t) => t.id === tool)!.hint
-  if (!free && tool === 'move') hint = 'Fais glisser un joueur pour le placer. Touche un attaquant pour lui donner le ballon.'
+  if (!free && tool === 'move') hint = 'Glisse un joueur pour le placer, touche un attaquant pour le ballon.'
   if (!free && tool === 'pass') hint = 'Touche le joueur qui reçoit la passe.'
   if (free && tool === 'erase' && index === 0) hint = 'Touche une flèche, un joueur ou un plot pour l’effacer.'
   const invalid = step.actions.some((a) => isInvalid(state, a))
@@ -263,56 +270,69 @@ export function DrawingEditor({ scene, free, defense = true, initialTool, onComm
 
   return (
     <>
-      <div className="step-bar">
-        <div className="step-dots">
-          {scene.steps.map((s, i) => (
-            <button key={s.id} className={i === index ? 'active' : ''} onClick={() => goTo(i)} aria-label={`Temps ${i + 1}`}>
-              {i + 1}
+      <div className={preview ? 'stage previewing' : 'stage'}>
+        {notice}
+        <div className="step-bar">
+          <div className="step-dots" ref={dots}>
+            {scene.steps.map((s, i) => (
+              <button key={s.id} className={i === index ? 'active' : ''} onClick={() => goTo(i)} aria-label={`Temps ${i + 1}`}>
+                {i + 1}
+              </button>
+            ))}
+            <button className="add" onClick={addStep} aria-label="Ajouter un temps">
+              <Icon name="plus" />
             </button>
-          ))}
-          <button className="add" onClick={addStep} aria-label="Ajouter un temps">
-            <Icon name="plus" />
+          </div>
+          <button className="square" onClick={history.undo} disabled={!history.canUndo} aria-label="Annuler">
+            <Icon name="undo" />
+          </button>
+          <button className="square" onClick={history.redo} disabled={!history.canRedo} aria-label="Rétablir">
+            <Icon name="redo" />
+          </button>
+          <button className="square primary" onClick={() => setPreview(!preview)} aria-label={preview ? 'Revenir au dessin' : 'Voir l’animation'}>
+            <Icon name={preview ? 'edit' : 'play'} />
           </button>
         </div>
-        <button className="button small primary" onClick={() => setPreview(!preview)}>
-          <Icon name={preview ? 'edit' : 'play'} /> {preview ? 'Dessiner' : 'Lire'}
-        </button>
+
+        {preview ? (
+          <PlayPlayer scene={scene} defense={defense} />
+        ) : (
+          <>
+            <div className="stage-court">
+              <Court
+                court={scene.court}
+                svgRef={svg}
+                className={`editing tool-${tool}`}
+                onPointerDown={down}
+                onPointerMove={move}
+                onPointerUp={up}
+                onPointerCancel={() => setDrag(null)}
+                aria-label={`Terrain, temps ${index + 1}`}
+              >
+                <Diagram state={{ ...state, positions }} step={step} cones={cones} defense={defense} />
+                {draft && <path className="draft" d={toPath(draft)} />}
+              </Court>
+            </div>
+
+            <div className="dock">
+              <div className="hint-row">
+                <p className={invalid ? 'hint warning' : 'hint'}>
+                  {invalid ? 'Une action (en rouge) part d’un joueur sans ballon : efface-la.' : hint}
+                </p>
+                {onFormations && index === 0 && (
+                  <button className="button ghost small" onClick={onFormations}>Placements</button>
+                )}
+              </div>
+              <div className={free ? 'toolbar two-rows' : 'toolbar'} role="toolbar" aria-label="Outils de dessin">
+                {tools.map(button)}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
-      {preview ? (
-        <PlayPlayer scene={scene} defense={defense} />
-      ) : (
+      {!preview && (
         <>
-          <Court
-            court={scene.court}
-            svgRef={svg}
-            className={`editing tool-${tool}`}
-            onPointerDown={down}
-            onPointerMove={move}
-            onPointerUp={up}
-            onPointerCancel={() => setDrag(null)}
-            aria-label={`Terrain, temps ${index + 1}`}
-          >
-            <Diagram state={{ ...state, positions }} step={step} cones={cones} defense={defense} />
-            {draft && <path className="draft" d={toPath(draft)} />}
-          </Court>
-
-          <p className={invalid ? 'hint warning' : 'hint'}>
-            {invalid ? 'Une action (en rouge) part d’un joueur qui n’a plus le ballon : efface-la ou corrige un temps précédent.' : hint}
-          </p>
-
-          <div className={free ? 'toolbar two-rows' : 'toolbar'} role="toolbar" aria-label="Outils de dessin">
-            {tools.map(button)}
-          </div>
-
-          <div className="row">
-            <button className="button ghost small" onClick={history.undo} disabled={!history.canUndo}><Icon name="undo" /> Annuler</button>
-            <button className="button ghost small" onClick={history.redo} disabled={!history.canRedo}><Icon name="redo" /> Rétablir</button>
-            <button className="button ghost small danger-text" onClick={removeStep}>
-              <Icon name="trash" /> {scene.steps.length === 1 ? 'Vider' : 'Supprimer'}
-            </button>
-          </div>
-
           <label>
             Consigne du temps {index + 1}
             <textarea
@@ -322,6 +342,9 @@ export function DrawingEditor({ scene, free, defense = true, initialTool, onComm
               onChange={(e) => onPatch({ steps: stepsWith({ note: e.target.value }) })}
             />
           </label>
+          <button className="button ghost small danger-text" onClick={removeStep}>
+            <Icon name="trash" /> {scene.steps.length === 1 ? 'Vider le dessin' : `Supprimer le temps ${index + 1}`}
+          </button>
         </>
       )}
     </>

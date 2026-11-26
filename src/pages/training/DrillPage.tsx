@@ -1,7 +1,9 @@
+import { PendingDraft } from '../../components/DraftNotice'
 import { Icon } from '../../components/Icon'
 import { PlayPlayer } from '../../components/PlayPlayer'
 import { Header, NotFound, useFeedback } from '../../components/ui'
 import { useStore } from '../../data/store'
+import { draftKey, removeDraft } from '../../lib/drafts'
 import { uid } from '../../lib/engine'
 import { navigate } from '../../lib/router'
 import { hasDiagram } from '../../lib/training'
@@ -49,6 +51,7 @@ export function DrillPage({ id }: { id: string }) {
     if (!(await confirm(`Supprimer « ${drill.name} » ?${warning}`, 'Supprimer'))) return
     try {
       await remove('drills', id)
+      removeDraft(draftKey('drills', id))
       navigate('/entrainement/exercices', { replace: true })
     } catch (e) {
       toast((e as Error).message)
@@ -63,6 +66,7 @@ export function DrillPage({ id }: { id: string }) {
         </a>
       </Header>
       <main>
+        <PendingDraft table="drills" draftKey={draftKey('drills', id)} href={`/entrainement/exercice/${id}/modifier`} />
         {hasDiagram(drill) && <PlayPlayer key={drill.id} scene={drill} />}
         <div className="card">
           <span className="tag">{drill.theme} · {drill.duration} min</span>

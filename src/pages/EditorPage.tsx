@@ -1,11 +1,14 @@
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
+import { RestoredNotice } from '../components/DraftNotice'
 import { CourtChoice, DrawingEditor } from '../components/DrawingEditor'
+import { FormationSheet } from '../components/FormationSheet'
 import { Header, NotFound, useFeedback } from '../components/ui'
 import { useStore } from '../data/store'
+import { draftKey } from '../lib/drafts'
 import { newPlay, playScene } from '../lib/engine'
-import { navigate, releaseGuard, useLeaveGuard } from '../lib/router'
+import { navigate, releaseGuard } from '../lib/router'
 import { CATEGORIES, type Play, type Scene } from '../lib/types'
-import { useHistory } from '../lib/useHistory'
+import { useDrawingDraft } from '../lib/useDrawingDraft'
 
 /** Traduit une modification du dessin vers le format d'un système. */
 function toPlay({ balls, cones: _, start, ...changes }: Partial<Scene>): Partial<Play> {
@@ -23,13 +26,17 @@ export function EditorPage({ id }: { id?: string }) {
 }
 
 function Editor({ initial, isNew }: { initial: Play; isNew: boolean }) {
-  const { save } = useStore()
-  const { confirm, toast } = useFeedback()
-  const history = useHistory(() => initial)
+  const { plays, save } = useStore()
+  const { toast } = useFeedback()
+  const savedAt = plays.find((p) => p.id === initial.id)?.updatedAt
+  const { history, restored, outdated, forget } = useDrawingDraft(
+    'plays',
+    draftKey('plays', isNew ? undefined : initial.id),
+    initial,
+    isNew ? '' : (savedAt ?? ''),
+  )
+  const [picking, setPicking] = useState(false)
   const [saving, setSaving] = useState(false)
-
-  const askLeave = useCallback(() => confirm('Quitter sans enregistrer les modifications ?', 'Quitter'), [confirm])
-  useLeaveGuard(history.dirty, askLeave)
 
   const play = history.value
   const scene = playScene(play)
@@ -40,6 +47,7 @@ function Editor({ initial, isNew }: { initial: Play; isNew: boolean }) {
     setSaving(true)
     try {
       await save('plays', { ...play, name })
+      forget()
       releaseGuard()
       navigate(`/systemes/${play.id}`, { replace: true })
     } catch (e) {
@@ -50,19 +58,22 @@ function Editor({ initial, isNew }: { initial: Play; isNew: boolean }) {
 
   return (
     <>
-      <Header title={isNew ? 'Création' : 'Modifier'} back={isNew ? '/systemes' : `/systemes/${play.id}`}>
+      <Header
+        back={isNew ? '/systemes' : `/systemes/${initial.id}`}
+        title={
+          <input
+            className="name-input"
+            placeholder="Nom du système"
+            aria-label="Nom du système"
+            value={play.name}
+            onChange={(e) => history.patch({ name: e.target.value })}
+            maxLength={80}
+          />
+        }
+      >
         <button className="button accent" onClick={submit} disabled={saving}>Enregistrer</button>
       </Header>
       <main className="editor">
-        <input
-          className="name-input"
-          placeholder="Nom du système"
-          aria-label="Nom du système"
-          value={play.name}
-          onChange={(e) => history.patch({ name: e.target.value })}
-          maxLength={80}
-        />
-
         <DrawingEditor
           scene={scene}
           defense={play.defense}
@@ -70,6 +81,8 @@ function Editor({ initial, isNew }: { initial: Play; isNew: boolean }) {
           history={history}
           onCommit={(changes) => history.commit(toPlay(changes))}
           onPatch={(changes) => history.patch(toPlay(changes))}
+          onFormations={() => setPicking(true)}
+          notice={restored && <RestoredNotice outdated={outdated} onDiscard={history.reset} />}
         />
 
         <section className="card form">
@@ -91,6 +104,7 @@ function Editor({ initial, isNew }: { initial: Play; isNew: boolean }) {
           </label>
         </section>
       </main>
+      {picking && <FormationSheet play={play} onPick={history.commit} onClose={() => setPicking(false)} />}
     </>
   )
 }

@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Thumbnail } from '../../components/Diagram'
+import { PendingDraft } from '../../components/DraftNotice'
 import { Icon } from '../../components/Icon'
 import { Picker } from '../../components/Picker'
 import { PlayPlayer } from '../../components/PlayPlayer'
 import { Header, NotFound, today, useFeedback } from '../../components/ui'
 import { useStore } from '../../data/store'
+import { draftKey } from '../../lib/drafts'
 import { uid } from '../../lib/engine'
 import { navigate, releaseGuard } from '../../lib/router'
 import { clock, copySession, hasDiagram, itemFor, newSession, totalDuration } from '../../lib/training'
@@ -225,6 +227,11 @@ function SessionForm({ initial, stored, isNew }: { initial: Session; stored?: Se
                 />
               ))}
             </ol>
+            <PendingDraft
+              table="drills"
+              draftKey={draftKey('drills', undefined, session.id)}
+              href={`/entrainement/exercice/nouveau/${session.id}`}
+            />
             <button className="button primary" onClick={() => setPicking(true)}><Icon name="plus" /> Ajouter des exercices</button>
             <div className="row">
               <button className="button ghost" onClick={createDrill} disabled={saving}>Nouvel exercice</button>

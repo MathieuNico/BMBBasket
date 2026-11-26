@@ -16,6 +16,9 @@ export const COURT = { width: 150, half: 140, full: 280, basket: { x: 75, y: 15.
 
 export const courtHeight = (court: Scene['court']) => (court === 'full' ? COURT.full : COURT.half)
 
+/** Position d'un défenseur individuel face à son attaquant. */
+export const marking = (attacker: Point) => lerp(attacker, COURT.basket, 0.24)
+
 /** Positions de tous les joueurs d'une scène. Un joueur référencé existe toujours. */
 export type Positions = Record<PlayerId, Point>
 
@@ -60,7 +63,7 @@ export function defaultPositions(): Positions {
   offense.forEach((p, i) => {
     out[OFFENSE[i]] = p
     // le défenseur se place entre son joueur et le panier
-    out[DEFENSE[i]] = lerp(p, COURT.basket, 0.24)
+    out[DEFENSE[i]] = marking(p)
   })
   return out
 }

@@ -1,11 +1,13 @@
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
+import { RestoredNotice } from '../../components/DraftNotice'
 import { CourtChoice, DrawingEditor } from '../../components/DrawingEditor'
 import { Header, NotFound, useFeedback } from '../../components/ui'
 import { useStore } from '../../data/store'
-import { navigate, releaseGuard, useLeaveGuard } from '../../lib/router'
+import { draftKey } from '../../lib/drafts'
+import { navigate, releaseGuard } from '../../lib/router'
 import { itemFor, newDrill } from '../../lib/training'
 import { THEMES, type Drill } from '../../lib/types'
-import { useHistory } from '../../lib/useHistory'
+import { useDrawingDraft } from '../../lib/useDrawingDraft'
 
 interface Props {
   id?: string
@@ -24,19 +26,22 @@ export function DrillEditorPage({ id, sessionId }: Props) {
 }
 
 function Editor({ initial, isNew, sessionId }: { initial: Drill; isNew: boolean; sessionId?: string }) {
-  const { sessions, save } = useStore()
-  const { confirm, toast } = useFeedback()
-  const history = useHistory(() => initial)
+  const { drills, sessions, save } = useStore()
+  const { toast } = useFeedback()
+  const savedAt = drills.find((d) => d.id === initial.id)?.updatedAt
+  const { history, restored, outdated, forget } = useDrawingDraft(
+    'drills',
+    draftKey('drills', isNew ? undefined : initial.id, sessionId),
+    initial,
+    isNew ? '' : (savedAt ?? ''),
+  )
   const [saving, setSaving] = useState(false)
-
-  const askLeave = useCallback(() => confirm('Quitter sans enregistrer les modifications ?', 'Quitter'), [confirm])
-  useLeaveGuard(history.dirty, askLeave)
 
   const drill = history.value
   const session = sessions.find((s) => s.id === sessionId)
   const back = session
     ? `/entrainement/seance/${session.id}`
-    : isNew ? '/entrainement/exercices' : `/entrainement/exercice/${drill.id}`
+    : isNew ? '/entrainement/exercices' : `/entrainement/exercice/${initial.id}`
 
   const submit = async () => {
     const name = drill.name.trim()
@@ -46,6 +51,7 @@ function Editor({ initial, isNew, sessionId }: { initial: Drill; isNew: boolean;
       const saved = { ...drill, name }
       await save('drills', saved)
       if (session) await save('sessions', { ...session, items: [...session.items, itemFor(saved)] })
+      forget()
       releaseGuard()
       navigate(session ? back : `/entrainement/exercice/${drill.id}`, { replace: true })
     } catch (e) {
@@ -56,38 +62,22 @@ function Editor({ initial, isNew, sessionId }: { initial: Drill; isNew: boolean;
 
   return (
     <>
-      <Header title={isNew ? 'Exercice' : 'Modifier'} back={back}>
+      <Header
+        back={back}
+        title={
+          <input
+            className="name-input"
+            placeholder="Nom de l’exercice"
+            aria-label="Nom de l’exercice"
+            value={drill.name}
+            onChange={(e) => history.patch({ name: e.target.value })}
+            maxLength={80}
+          />
+        }
+      >
         <button className="button accent" onClick={submit} disabled={saving}>Enregistrer</button>
       </Header>
       <main className="editor">
-        <input
-          className="name-input"
-          placeholder="Nom de l’exercice"
-          aria-label="Nom de l’exercice"
-          value={drill.name}
-          onChange={(e) => history.patch({ name: e.target.value })}
-          maxLength={80}
-        />
-        <div className="row">
-          <label>
-            Thème
-            <select value={drill.theme} onChange={(e) => history.commit({ theme: e.target.value })}>
-              {THEMES.map((t) => <option key={t}>{t}</option>)}
-            </select>
-          </label>
-          <label>
-            Durée (min)
-            <input
-              type="number"
-              inputMode="numeric"
-              min={0}
-              max={600}
-              value={drill.duration || ''}
-              onChange={(e) => history.patch({ duration: Math.max(0, Math.min(600, Math.round(Number(e.target.value)))) })}
-            />
-          </label>
-        </div>
-
         <DrawingEditor
           scene={drill}
           free
@@ -95,10 +85,30 @@ function Editor({ initial, isNew, sessionId }: { initial: Drill; isNew: boolean;
           history={history}
           onCommit={history.commit}
           onPatch={history.patch}
+          notice={restored && <RestoredNotice outdated={outdated} onDiscard={history.reset} />}
         />
 
         <section className="card form">
           <h2>La fiche</h2>
+          <div className="row">
+            <label>
+              Thème
+              <select value={drill.theme} onChange={(e) => history.commit({ theme: e.target.value })}>
+                {THEMES.map((t) => <option key={t}>{t}</option>)}
+              </select>
+            </label>
+            <label>
+              Durée (min)
+              <input
+                type="number"
+                inputMode="numeric"
+                min={0}
+                max={600}
+                value={drill.duration || ''}
+                onChange={(e) => history.patch({ duration: Math.max(0, Math.min(600, Math.round(Number(e.target.value)))) })}
+              />
+            </label>
+          </div>
           <CourtChoice scene={drill} onChange={(court) => history.commit({ court })} />
           <label>
             Organisation et consignes

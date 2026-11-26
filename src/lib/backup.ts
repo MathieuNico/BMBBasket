@@ -45,6 +45,8 @@ const CHECKS: Record<Table, (item: Record<string, any>) => boolean> = {
   members: (m) => isString(m.name) && isString(m.team),
 }
 
+export const isValidItem = (table: Table, item: unknown) => isObject(item) && isUuid(item.id) && CHECKS[table](item)
+
 export function parseBackup(text: string): Data {
   const invalid = new Error("Ce fichier n'est pas une sauvegarde BMB.")
   let data: unknown
@@ -59,7 +61,7 @@ export function parseBackup(text: string): Data {
   for (const table of TABLES) {
     // les sauvegardes d'avant la partie entraînement n'ont ni exercices ni séances
     const items = data[table] ?? []
-    if (!Array.isArray(items) || !items.every((x) => isObject(x) && isUuid(x.id) && CHECKS[table](x))) {
+    if (!Array.isArray(items) || !items.every((x) => isValidItem(table, x))) {
       throw new Error('La sauvegarde est abîmée : rien n’a été importé.')
     }
     out[table] = items

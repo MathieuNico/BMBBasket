@@ -11,7 +11,7 @@ export function Logo() {
   )
 }
 
-export function Header({ title, back, children }: { title: string; back?: string; children?: ReactNode }) {
+export function Header({ title, back, children }: { title: ReactNode; back?: string; children?: ReactNode }) {
   return (
     <header className="header">
       {back ? (
@@ -21,7 +21,7 @@ export function Header({ title, back, children }: { title: string; back?: string
       ) : (
         <Logo />
       )}
-      <h1>{title}</h1>
+      {typeof title === 'string' ? <h1>{title}</h1> : title}
       <div className="header-actions">{children}</div>
     </header>
   )

@@ -1,10 +1,14 @@
 import { useState } from 'react'
 
-/** Valeur en cours d'édition, avec annuler et rétablir. */
-export function useHistory<T extends object>(initial: () => T) {
+/**
+ * Valeur en cours d'édition, avec annuler et rétablir.
+ * `restored` reprend une saisie non enregistrée ; annuler ramène alors à la version enregistrée.
+ */
+export function useHistory<T extends object>(initial: () => T, restored?: () => T | undefined) {
   const [state, setState] = useState(() => {
     const first = initial()
-    return { first, past: [] as T[], value: first, future: [] as T[] }
+    const draft = restored?.()
+    return { first, past: draft ? [first] : ([] as T[]), value: draft ?? first, future: [] as T[] }
   })
 
   return {
@@ -29,5 +33,7 @@ export function useHistory<T extends object>(initial: () => T) {
         if (!next) return s
         return { ...s, past: [...s.past, s.value], value: next, future: s.future.slice(1) }
       }),
+    /** Revient à la version enregistrée et oublie l'historique. */
+    reset: () => setState((s) => ({ first: s.first, past: [], value: s.first, future: [] })),
   }
 }

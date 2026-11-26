@@ -1,6 +1,6 @@
 import type { ReactNode, Ref, SVGProps } from 'react'
 import { COURT, courtHeight } from '../lib/engine'
-import type { Play } from '../lib/types'
+import type { Play, Point, Scene } from '../lib/types'
 
 export const MARGIN = 7
 
@@ -23,6 +23,13 @@ function HalfCourt() {
       </g>
     </g>
   )
+}
+
+/** Position du doigt en coordonnées du terrain, limitée à ses abords. */
+export function courtPoint(svg: SVGSVGElement, e: { clientX: number; clientY: number }, court: Scene['court']): Point {
+  const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(svg.getScreenCTM()!.inverse())
+  const clamp = (v: number, max: number) => Math.round(Math.max(-4, Math.min(max + 4, v)) * 10) / 10
+  return { x: clamp(p.x, COURT.width), y: clamp(p.y, courtHeight(court)) }
 }
 
 interface Props extends SVGProps<SVGSVGElement> {

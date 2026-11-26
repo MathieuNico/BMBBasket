@@ -1,7 +1,9 @@
+import { PendingDraft } from '../components/DraftNotice'
 import { Icon } from '../components/Icon'
 import { PlayPlayer } from '../components/PlayPlayer'
 import { Header, NotFound, useFeedback } from '../components/ui'
 import { useStore } from '../data/store'
+import { draftKey, removeDraft } from '../lib/drafts'
 import { playScene, uid } from '../lib/engine'
 import { navigate } from '../lib/router'
 
@@ -28,6 +30,7 @@ export function PlayPage({ id }: { id: string }) {
     if (!(await confirm(`Supprimer « ${play.name} » ?${warning}`, 'Supprimer'))) return
     try {
       await remove('plays', id)
+      removeDraft(draftKey('plays', id))
       navigate('/systemes', { replace: true })
     } catch (e) {
       toast((e as Error).message)
@@ -42,6 +45,7 @@ export function PlayPage({ id }: { id: string }) {
         </a>
       </Header>
       <main>
+        <PendingDraft table="plays" draftKey={draftKey('plays', id)} href={`/systemes/${id}/modifier`} />
         <PlayPlayer key={play.id} scene={playScene(play)} defense={play.defense} />
         <div className="card">
           <span className="tag">{play.category}</span>

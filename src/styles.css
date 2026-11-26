@@ -127,7 +127,7 @@ legend { font-size: 0.85rem; font-weight: 600; color: var(--muted); margin-botto
 
 /* Terrain et schémas */
 .court { display: block; width: 100%; height: auto; border-radius: 10px; user-select: none; }
-.player-view > .court, .editor > .court { max-height: max(300px, calc(100dvh - 300px)); }
+.player-view > .court { max-height: max(300px, calc(100dvh - 300px)); }
 .court.editing { touch-action: none; cursor: crosshair; }
 .court-floor { fill: var(--blue); }
 .court-key { fill: var(--blue-dark); }
@@ -167,12 +167,27 @@ legend { font-size: 0.85rem; font-weight: 600; color: var(--muted); margin-botto
 .transport .play-button { width: 66px; height: 66px; background: var(--yellow); border-color: var(--yellow); color: var(--blue-dark); }
 .transport .speed { font-weight: 700; font-size: 0.9rem; }
 
-.editor { gap: 10px; padding-bottom: 30px; }
-.name-input { font-weight: 700 !important; }
-.step-bar { display: flex; align-items: center; gap: 10px; }
-.step-bar .step-dots { flex: 1; justify-content: flex-start; }
-.hint { font-size: 0.85rem; color: var(--muted); min-height: 2.5em; }
+/* Éditeur : en-tête, temps, terrain et outils tiennent ensemble sur le premier écran */
+.editor { gap: 10px; padding-top: 0; padding-bottom: 30px; }
+.header .name-input { flex: 1; min-width: 0; min-height: 42px; padding: 6px 10px; font-weight: 700; border-color: transparent; }
+.stage { display: flex; flex-direction: column; gap: 8px; padding-top: 8px; height: calc(100svh - 70px - env(safe-area-inset-top)); min-height: 460px; }
+.stage.previewing { height: auto; }
+.stage-court { flex: 1; min-height: 0; display: flex; justify-content: center; align-items: center; container-type: size; }
+.stage-court .court, .board-court .court { height: auto; }
+.stage-court .court-half { width: min(100cqw, calc(100cqh * 164 / 154)); }
+.stage-court .court-full { width: min(100cqw, calc(100cqh * 164 / 294)); }
+.dock { display: flex; flex-direction: column; gap: 6px; padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+.hint-row { display: flex; align-items: center; gap: 8px; min-height: 40px; }
+.hint-row .button { flex: none; }
+.step-bar { display: flex; align-items: center; gap: 6px; }
+.step-bar .step-dots { flex: 1; min-width: 0; flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; }
+.step-bar .step-dots button { flex: none; }
+.square { display: grid; place-items: center; width: 42px; height: 42px; flex: none; border-radius: 10px; border: 2px solid var(--border); background: var(--white); }
+.square.primary { background: var(--blue); border-color: var(--blue); color: var(--white); }
+.hint { flex: 1; font-size: 0.8rem; line-height: 1.3; color: var(--muted); }
 .hint.warning { color: var(--danger); font-weight: 600; }
+.draft-notice { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #fffbd1; border: 2px solid var(--yellow); border-radius: 10px; padding: 8px 10px 8px 12px; font-size: 0.85rem; color: var(--text); }
+.draft-notice .button { flex: none; }
 .toolbar { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; }
 .toolbar button { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; padding: 8px 0; border-radius: 10px; border: 2px solid var(--border); background: var(--white); font-size: 0.68rem; font-weight: 600; }
 .toolbar button.active { background: var(--blue); border-color: var(--blue); color: var(--yellow); }
@@ -235,6 +250,25 @@ legend { font-size: 0.85rem; font-weight: 600; color: var(--muted); margin-botto
 .match-mode details summary { font-weight: 700; cursor: pointer; }
 .match-mode details p { margin-top: 8px; }
 .instruction { background: var(--yellow); color: var(--blue-dark); border-radius: 10px; padding: 10px 14px; font-weight: 700; }
+
+/* Placements de départ */
+.sheet-body { display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
+.formations button { display: flex; flex-direction: column; gap: 3px; width: 100%; padding: 8px; text-align: left; background: var(--background); border: 2px solid var(--border); border-radius: 12px; }
+.formations strong { font-size: 0.9rem; }
+
+/* Ardoise de temps mort */
+.board { position: fixed; inset: 0; z-index: 15; display: flex; flex-direction: column; background: var(--blue-dark); color: var(--white); }
+.board .header h1 { font-size: 1.2rem; }
+.board-court { flex: 1; min-height: 0; display: flex; justify-content: center; align-items: center; container-type: size; margin: 8px 12px; }
+.board-court .court-half { width: min(100cqw, calc(100cqh * 164 / 154)); }
+.board-court .court-full { width: min(100cqw, calc(100cqh * 164 / 294)); }
+.board-tools { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 640px; margin: 0 auto; padding: 0 12px max(10px, env(safe-area-inset-bottom)); color: var(--text); }
+.board-tools .button { line-height: 1.15; padding-inline: 6px; }
+.swatches { display: flex; align-items: center; gap: 10px; }
+.swatches > button:not(.button) { width: 40px; height: 40px; flex: none; border-radius: 50%; border: 3px solid transparent; box-shadow: 0 0 0 2px rgb(255 255 255 / 35%); }
+.swatches > button.active { border-color: var(--blue-dark); box-shadow: 0 0 0 3px var(--yellow); }
+.swatches .button { margin-left: auto; }
+.stroke { fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 
 @media (prefers-reduced-motion: no-preference) {
   .button, .chip, .toolbar button { transition: background-color 0.15s, border-color 0.15s; }

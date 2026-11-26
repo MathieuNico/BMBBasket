@@ -4,7 +4,9 @@ Application du Bégrolles le May Basket pour dessiner les systèmes de jeu et pr
 
 ## Ce qu'elle fait
 
-- **Systèmes** : dessin sur demi-terrain ou terrain entier (courses, dribbles, passes, écrans, tirs), temps par temps, avec une consigne par temps, des défenseurs optionnels et une lecture animée.
+- **Systèmes** : dessin sur demi-terrain ou terrain entier (courses, dribbles, passes, écrans, tirs), temps par temps, avec une consigne par temps, des défenseurs optionnels et une lecture animée. Placements de départ en un geste (4-1, 5 dehors, Horns, 1-4, remises en jeu, individuelle, zones).
+- **Ardoise de temps mort** : pions à déplacer et dessin libre au doigt, rien n'est enregistré. Accessible depuis Systèmes, Matchs et le mode match.
+- **Brouillon automatique** : un système ou un exercice non enregistré est repris si la page a été fermée. Le brouillon reste sur l'appareil ; quitter volontairement sans enregistrer l'efface.
 - **Entraînement**
   - *Séances* : équipe, date, thème, objectif, déroulé avec durées et horaires, temps libres, matériel à prévoir, duplication d'une séance.
   - *Exercices* : bibliothèque classée par thème, avec fiche (consignes, variantes, matériel) et dessin libre : joueurs, défenseurs, coachs, plots, plusieurs ballons.

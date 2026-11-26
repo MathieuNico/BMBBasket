@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Icon } from '../components/Icon'
 import { PlayPlayer } from '../components/PlayPlayer'
+import { useBoard, Whiteboard } from '../components/Whiteboard'
 import { useStore } from '../data/store'
 import { playScene } from '../lib/engine'
 
@@ -31,6 +32,7 @@ function useWakeLock() {
 export function MatchModePage({ id }: { id: string }) {
   const { matches, plays } = useStore()
   const [current, setCurrent] = useState(0)
+  const board = useBoard()
   useWakeLock()
 
   const match = matches.find((m) => m.id === id)
@@ -48,6 +50,7 @@ export function MatchModePage({ id }: { id: string }) {
       <header className="header">
         <a className="icon-button" href={`#/matchs/${id}`} aria-label="Quitter le mode match"><Icon name="close" /></a>
         <h1>{match ? `vs ${match.opponent}` : 'Match introuvable'}</h1>
+        <button className="button accent" onClick={board.show}>Ardoise</button>
       </header>
       <nav className="chips" aria-label="Systèmes du match">
         {entries.map(({ entry, play }, i) => (
@@ -73,6 +76,7 @@ export function MatchModePage({ id }: { id: string }) {
           <p className="muted center">Aucun système dans ce match.</p>
         )}
       </main>
+      {board.open && <Whiteboard onClose={board.hide} />}
     </div>
   )
 }

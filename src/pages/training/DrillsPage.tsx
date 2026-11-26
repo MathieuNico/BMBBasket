@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { Thumbnail } from '../../components/Diagram'
+import { PendingDraft } from '../../components/DraftNotice'
 import { Icon } from '../../components/Icon'
 import { byName, Chips, normalize } from '../../components/ui'
 import { useStore } from '../../data/store'
+import { draftKey } from '../../lib/drafts'
 import { THEMES } from '../../lib/types'
 import { TrainingHeader } from './TrainingHeader'
 
@@ -22,6 +24,7 @@ export function DrillsPage() {
     <>
       <TrainingHeader current="Exercices" />
       <main>
+        <PendingDraft table="drills" draftKey={draftKey('drills')} href="/entrainement/exercice/nouveau" />
         {drills.length === 0 ? (
           <div className="empty">
             <h2>Ta bibliothèque est vide</h2>

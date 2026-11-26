@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import { Thumbnail } from '../components/Diagram'
+import { PendingDraft } from '../components/DraftNotice'
 import { Icon } from '../components/Icon'
 import { byName, Chips, Header, normalize, useFeedback } from '../components/ui'
+import { useBoard, Whiteboard } from '../components/Whiteboard'
 import { useStore } from '../data/store'
+import { draftKey } from '../lib/drafts'
 import { playScene } from '../lib/engine'
 import { examplePlays } from '../lib/examples'
 
@@ -11,6 +14,7 @@ export function PlaysPage() {
   const { toast } = useFeedback()
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('')
+  const board = useBoard()
 
   const categories = [...new Set(plays.map((p) => p.category))].sort()
   const active = categories.includes(category) ? category : ''
@@ -29,8 +33,12 @@ export function PlaysPage() {
 
   return (
     <>
-      <Header title="Systèmes" />
+      <Header title="Systèmes">
+        <button className="button accent" onClick={board.show}>Ardoise</button>
+      </Header>
+      {board.open && <Whiteboard onClose={board.hide} />}
       <main>
+        <PendingDraft table="plays" draftKey={draftKey('plays')} href="/systemes/nouveau" />
         {plays.length === 0 ? (
           <div className="empty">
             <h2>Ton playbook est vide</h2>

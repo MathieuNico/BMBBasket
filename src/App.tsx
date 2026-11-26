@@ -3,6 +3,7 @@ import { Icon } from './components/Icon'
 import { FeedbackProvider } from './components/ui'
 import { clearCache, supabase } from './data/cloudRepo'
 import { StoreProvider, useStore } from './data/store'
+import { clearDrafts } from './lib/drafts'
 import { useRoute } from './lib/router'
 import { EditorPage } from './pages/EditorPage'
 import { LoginPage } from './pages/LoginPage'
@@ -123,6 +124,7 @@ function useUser() {
       else if (event === 'SIGNED_OUT') {
         localStorage.removeItem(USER)
         clearCache()
+        clearDrafts()
         setUser(null)
       }
     })
