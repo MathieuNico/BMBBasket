@@ -40,18 +40,19 @@ export function PlayPage({ id }: { id: string }) {
 
   return (
     <>
-      <Header title={play.name} back="/systemes">
-        <a className="icon-button" href={`#/systemes/${id}/modifier`} aria-label="Modifier">
-          <Icon name="edit" />
+      <Header title={play.name} subtitle={play.category} back="/systemes">
+        <a className="button soft small" href={`#/systemes/${id}/modifier`}>
+          <Icon name="edit" /> Modifier
         </a>
       </Header>
       <main>
         <PendingDraft table="plays" draftKey={draftKey('plays', id)} href={`/systemes/${id}/modifier`} />
         <PlayPlayer key={play.id} scene={playScene(play)} defense={play.defense} />
-        <div className="card">
-          <span className="tag">{play.category}</span>
-          {play.description && <p className="pre">{play.description}</p>}
-        </div>
+        {play.description && (
+          <div className="card">
+            <p className="pre">{play.description}</p>
+          </div>
+        )}
         <ShareChoice play={play} />
         <div className="row">
           <button className="button ghost" onClick={duplicate}><Icon name="copy" /> Dupliquer</button>

@@ -8,8 +8,8 @@ Application du Bégrolles le May Basket pour que les coachs préparent les entra
 - **Entraînement**
   - *Séances* : équipe, date, thème, objectif, déroulé avec durées et horaires, matériel à prévoir, duplication. Une séance n'est visible des joueurs que si « Visible par les joueurs » est coché.
   - *Exercices* : bibliothèque classée par thème, avec fiche et dessin libre (joueurs, défenseurs, coachs, plots, plusieurs ballons).
-  - *Effectif* : joueurs par équipe, présences.
-- **Joueurs** : code du club à communiquer, équipes, liste des inscrits (changer d'équipe ou retirer un accès), aperçu de ce que voit chaque équipe.
+- **Accueil** : prochaine séance, raccourcis, étapes pour démarrer.
+- **Équipes** : code du club à communiquer et, par équipe, les comptes inscrits, l'effectif pour les présences et l'aperçu de ce que voient les joueurs.
 - **Brouillon automatique** : un dessin non enregistré est repris si la page a été fermée.
 - **Sauvegarde** : export et import dans un fichier.
 
@@ -67,11 +67,11 @@ Sans serveur, il n'y a ni comptes ni partage : l'application s'ouvre directement
 
 5. Sur l'ordinateur : copier `.env.example` en `.env.local`, y mettre l'URL du projet et la clé **publique**, puis relancer `npm run dev`.
 6. En ligne (Vercel) : ajouter les deux mêmes variables dans **Settings > Environment Variables**, puis redéployer.
-7. Se connecter en coach : dans l'onglet **Joueurs**, ajouter les équipes puis envoyer le code du club.
+7. Se connecter en coach : dans l'onglet **Équipes**, ajouter les équipes puis envoyer le code du club.
 
 Retirer un coach : `delete from public.staff where user_id = (select id from auth.users where email = 'coach@exemple.fr');`
 
-Retirer un joueur : onglet **Joueurs**, croix à côté de son nom, puis changer le code du club pour l'empêcher de se réinscrire.
+Retirer un joueur : onglet **Équipes**, croix à côté de son nom, puis changer le code du club pour l'empêcher de se réinscrire.
 
 À savoir :
 

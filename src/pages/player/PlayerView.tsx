@@ -1,7 +1,10 @@
 import { useState, type ReactNode } from 'react'
 import { Thumbnail } from '../../components/Diagram'
+import { Nav, type NavItem } from '../../components/Nav'
+import { PlayCard } from '../../components/PlayCard'
 import { PlayPlayer } from '../../components/PlayPlayer'
-import { byDate, byName, Chips, formatDate, Header, NotFound, normalize } from '../../components/ui'
+import { NextSession, SessionCard, when } from '../../components/SessionCard'
+import { byDate, byName, Chips, EmptyState, Header, NotFound, normalize, Search } from '../../components/ui'
 import { playScene } from '../../lib/engine'
 import type { PlayerContent } from '../../lib/sharing'
 import { clock, hasDiagram, totalDuration } from '../../lib/training'
@@ -19,28 +22,17 @@ interface Props {
   footer?: ReactNode
 }
 
-function Tabs({ base, current }: { base: string; current: 'seances' | 'systemes' }) {
-  return (
-    <nav className="subtabs" aria-label="Contenu de l’équipe">
-      <a href={`#${base}`} className={current === 'seances' ? 'active' : ''}>Séances</a>
-      <a href={`#${base}/systemes`} className={current === 'systemes' ? 'active' : ''}>Systèmes</a>
-    </nav>
-  )
-}
+const title = (session: Session) => session.title || 'Entraînement'
 
-function SessionLinks({ title, sessions, base }: { title: string; sessions: Session[]; base: string }) {
+function SessionLinks({ heading, sessions, base }: { heading: string; sessions: Session[]; base: string }) {
   if (!sessions.length) return null
   return (
     <section>
-      <h2>{title}</h2>
+      <h2>{heading}</h2>
       <ul className="list">
         {sessions.map((s) => (
           <li key={s.id}>
-            <a className="card session-card" href={`#${base}/seance/${s.id}`}>
-              <span className="session-date">{formatDate(s.date)}{s.time && ` · ${clock(s.time, 0)}`}</span>
-              <strong>{s.title || 'Entraînement'}</strong>
-              <span>{totalDuration(s.items)} min</span>
-            </a>
+            <SessionCard session={s} href={`${base}/seance/${s.id}`} title={title(s)} />
           </li>
         ))}
       </ul>
@@ -62,7 +54,7 @@ function Item({ item, drill, start }: { item: SessionItem; drill?: Drill; start:
       </div>
       {item.note && <p className="step-note pre">{item.note}</p>}
       {drill && (
-        <button className="button ghost small" aria-expanded={open} onClick={() => setOpen(!open)}>
+        <button className="button soft small" aria-expanded={open} onClick={() => setOpen(!open)}>
           {open ? 'Masquer' : 'Voir l’exercice'}
         </button>
       )}
@@ -79,20 +71,14 @@ function Item({ item, drill, start }: { item: SessionItem; drill?: Drill; start:
 function SessionView({ session, content, base }: { session: Session; content: PlayerContent; base: string }) {
   return (
     <>
-      <Header title={session.title || 'Entraînement'} back={base} />
+      <Header title={title(session)} subtitle={`${when(session)} · ${totalDuration(session.items)} min`} back={base} />
       <main>
-        <div className="card">
-          <strong className="session-date">
-            {formatDate(session.date)}{session.time && ` · ${clock(session.time, 0)}`}
-          </strong>
-          <span className="muted">{totalDuration(session.items)} min</span>
-          {session.objective && (
-            <div className="detail">
-              <h3>Objectif</h3>
-              <p className="pre">{session.objective}</p>
-            </div>
-          )}
-        </div>
+        {session.objective && (
+          <div className="card">
+            <h3>Objectif</h3>
+            <p className="pre">{session.objective}</p>
+          </div>
+        )}
         <ol className="list">
           {session.items.map((item, i) => (
             <Item
@@ -119,22 +105,18 @@ function Playbook({ content, base }: { content: PlayerContent; base: string }) {
     .filter((p) => normalize(`${p.name} ${p.description}`).includes(normalize(search.trim())))
     .sort(byName)
 
-  if (!content.plays.length) return <p className="muted center">Aucun système partagé pour le moment.</p>
+  if (!content.plays.length) {
+    return <EmptyState icon="playbook" title="Pas encore de système" text="Les systèmes partagés par ton coach apparaîtront ici." />
+  }
 
   return (
     <>
-      {content.plays.length > 5 && (
-        <input type="search" placeholder="Rechercher un système" value={search} onChange={(e) => setSearch(e.target.value)} />
-      )}
+      {content.plays.length > 5 && <Search label="Rechercher un système" value={search} onChange={setSearch} />}
       {categories.length > 1 && <Chips options={categories} value={active} onChange={setCategory} />}
       <ul className="grid">
         {shown.map((play) => (
           <li key={play.id}>
-            <a className="card play-card" href={`#${base}/systeme/${play.id}`}>
-              <Thumbnail scene={playScene(play)} defense={play.defense} />
-              <strong>{play.name}</strong>
-              <span>{play.category} · {play.steps.length} temps</span>
-            </a>
+            <PlayCard play={play} href={`${base}/systeme/${play.id}`} />
           </li>
         ))}
       </ul>
@@ -143,57 +125,81 @@ function Playbook({ content, base }: { content: PlayerContent; base: string }) {
   )
 }
 
+function Sessions({ content, base }: { content: PlayerContent; base: string }) {
+  if (!content.sessions.length) {
+    return <EmptyState icon="calendar" title="Pas encore de séance" text="Les séances publiées par ton coach apparaîtront ici." />
+  }
+  const { upcoming, past } = byDate(content.sessions)
+  const [next, ...later] = upcoming
+  return (
+    <>
+      {next && (
+        <NextSession
+          session={next}
+          href={`${base}/seance/${next.id}`}
+          title={title(next)}
+          detail={`${totalDuration(next.items)} min`}
+        />
+      )}
+      <SessionLinks heading="Ensuite" sessions={later} base={base} />
+      <SessionLinks heading="Passées" sessions={past} base={base} />
+    </>
+  )
+}
+
 /** Consultation seule : ce que voit un joueur de l'équipe. */
 export function PlayerView({ content, base, path, back, banner, footer }: Props) {
   const [kind, id] = path
+  const plays = kind === 'systemes' || kind === 'systeme'
+  const tabs: NavItem[] = [
+    { id: 'seances', href: base, label: 'Séances', icon: 'calendar' },
+    { id: 'systemes', href: `${base}/systemes`, label: 'Systèmes', icon: 'playbook' },
+  ]
 
-  if (kind === 'seance') {
-    const session = content.sessions.find((s) => s.id === id)
-    return session ? (
-      <SessionView key={session.id} session={session} content={content} base={base} />
-    ) : (
-      <NotFound back={base} text="Cette séance n’est plus partagée." />
-    )
-  }
+  const screen = () => {
+    if (kind === 'seance') {
+      const session = content.sessions.find((s) => s.id === id)
+      return session ? (
+        <SessionView key={session.id} session={session} content={content} base={base} />
+      ) : (
+        <NotFound back={base} text="Cette séance n’est plus partagée." />
+      )
+    }
 
-  if (kind === 'systeme') {
-    const play = content.plays.find((p) => p.id === id)
-    if (!play) return <NotFound back={`${base}/systemes`} text="Ce système n’est plus partagé." />
+    if (kind === 'systeme') {
+      const play = content.plays.find((p) => p.id === id)
+      if (!play) return <NotFound back={`${base}/systemes`} text="Ce système n’est plus partagé." />
+      return (
+        <>
+          <Header title={play.name} subtitle={play.category} back={`${base}/systemes`} />
+          <main>
+            <PlayPlayer key={play.id} scene={playScene(play)} defense={play.defense} />
+            {play.description && (
+              <div className="card">
+                <p className="pre">{play.description}</p>
+              </div>
+            )}
+          </main>
+        </>
+      )
+    }
+
     return (
       <>
-        <Header title={play.name} back={`${base}/systemes`} />
+        <Header title={plays ? 'Systèmes' : 'Séances'} subtitle={content.team} back={back} />
         <main>
-          <PlayPlayer key={play.id} scene={playScene(play)} defense={play.defense} />
-          <div className="card">
-            <span className="tag">{play.category}</span>
-            {play.description && <p className="pre">{play.description}</p>}
-          </div>
+          {banner}
+          {plays ? <Playbook content={content} base={base} /> : <Sessions content={content} base={base} />}
+          {footer}
         </main>
       </>
     )
   }
 
-  const plays = kind === 'systemes'
-  const { upcoming, past } = byDate(content.sessions)
-
   return (
-    <>
-      <Header title={content.team} back={back} />
-      <Tabs base={base} current={plays ? 'systemes' : 'seances'} />
-      <main>
-        {banner}
-        {plays ? (
-          <Playbook content={content} base={base} />
-        ) : content.sessions.length ? (
-          <>
-            <SessionLinks title="À venir" sessions={upcoming} base={base} />
-            <SessionLinks title="Passées" sessions={past} base={base} />
-          </>
-        ) : (
-          <p className="muted center">Aucune séance publiée pour le moment.</p>
-        )}
-        {footer}
-      </main>
-    </>
+    <div className="shell with-nav">
+      {screen()}
+      <Nav items={tabs} current={plays ? 'systemes' : 'seances'} />
+    </div>
   )
 }

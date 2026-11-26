@@ -74,7 +74,7 @@ export function SettingsPage({ email }: { email?: string }) {
 
   return (
     <>
-      <Header title="Réglages" />
+      <Header title="Réglages" back="/accueil" />
       <main>
         {isCloud ? (
           <Account email={email ?? ''} />

@@ -1,11 +1,10 @@
 import { useState } from 'react'
-import { Thumbnail } from '../components/Diagram'
 import { PendingDraft } from '../components/DraftNotice'
 import { Icon } from '../components/Icon'
-import { byName, Chips, Header, normalize, useFeedback } from '../components/ui'
+import { PlayCard } from '../components/PlayCard'
+import { byName, Chips, EmptyState, Header, normalize, Search, useFeedback } from '../components/ui'
 import { useStore } from '../data/store'
 import { draftKey } from '../lib/drafts'
-import { playScene } from '../lib/engine'
 import { examplePlays } from '../lib/examples'
 
 export function PlaysPage() {
@@ -20,6 +19,7 @@ export function PlaysPage() {
     .filter((p) => !active || p.category === active)
     .filter((p) => normalize(`${p.name} ${p.description}`).includes(normalize(search.trim())))
     .sort(byName)
+  const shared = plays.filter((p) => p.teams?.length).length
 
   const addExamples = async () => {
     try {
@@ -31,29 +31,29 @@ export function PlaysPage() {
 
   return (
     <>
-      <Header title="Systèmes" />
+      <Header
+        title="Systèmes"
+        subtitle={plays.length ? `${plays.length} au total · ${shared} partagé${shared > 1 ? 's' : ''}` : undefined}
+      />
       <main>
         <PendingDraft table="plays" draftKey={draftKey('plays')} href="/systemes/nouveau" />
         {plays.length === 0 ? (
-          <div className="empty">
-            <h2>Ton playbook est vide</h2>
-            <p>Dessine ton premier système sur le terrain, ou pars de deux exemples.</p>
+          <EmptyState icon="playbook" title="Ton playbook est vide" text="Dessine ton premier système sur le terrain, ou pars de deux exemples.">
             <a className="button primary" href="#/systemes/nouveau">Créer un système</a>
             <button className="button ghost" onClick={addExamples}>Ajouter les exemples</button>
-          </div>
+          </EmptyState>
         ) : (
           <>
-            <input type="search" placeholder="Rechercher un système" value={search} onChange={(e) => setSearch(e.target.value)} />
+            <Search label="Rechercher un système" value={search} onChange={setSearch} />
             {categories.length > 1 && <Chips options={categories} value={active} onChange={setCategory} />}
             <ul className="grid">
               {shown.map((play) => (
                 <li key={play.id}>
-                  <a className="card play-card" href={`#/systemes/${play.id}`}>
-                    <Thumbnail scene={playScene(play)} defense={play.defense} />
-                    <strong>{play.name}</strong>
-                    <span>{play.category} · {play.steps.length} temps</span>
-                    {play.teams?.length ? <span className="shared">Partagé : {play.teams.join(', ')}</span> : null}
-                  </a>
+                  <PlayCard play={play} href={`/systemes/${play.id}`}>
+                    <span className={play.teams?.length ? 'badge success' : 'badge'}>
+                      {play.teams?.length ? play.teams.join(', ') : 'Privé'}
+                    </span>
+                  </PlayCard>
                 </li>
               ))}
             </ul>

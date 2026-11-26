@@ -66,28 +66,31 @@ export function PlayPlayer({ scene, defense = true }: { scene: Scene; defense?: 
           faded={playing}
         />
       </Court>
-      <div className="step-dots">
-        {scene.steps.map((s, i) => (
-          <button key={s.id} className={i === index ? 'active' : ''} onClick={() => goTo(i)} aria-label={`Temps ${i + 1}`}>
-            {i + 1}
+      <div className="playback">
+        {last > 0 && (
+          <div className="timeline">
+            {scene.steps.map((s, i) => (
+              <button key={s.id} className={i === index ? 'active' : i < index ? 'passed' : ''} onClick={() => goTo(i)} aria-label={`Temps ${i + 1}`} />
+            ))}
+          </div>
+        )}
+        <div className="transport">
+          <span className="counter" aria-label={`Temps ${index + 1} sur ${last + 1}`}>{index + 1} / {last + 1}</span>
+          <button onClick={() => goTo(index - 1)} disabled={index === 0 && t === 0} aria-label="Temps précédent">
+            <Icon name="prev" />
           </button>
-        ))}
+          <button className="play-button" onClick={toggle} aria-label={playing ? 'Pause' : 'Lire'}>
+            <Icon name={playing ? 'pause' : 'play'} />
+          </button>
+          <button onClick={() => goTo(index + 1)} disabled={index === last} aria-label="Temps suivant">
+            <Icon name="next" />
+          </button>
+          <button className="speed" onClick={() => setSpeed(SPEEDS[(SPEEDS.indexOf(speed) + 1) % SPEEDS.length])} aria-label="Vitesse">
+            ×{String(speed).replace('.', ',')}
+          </button>
+        </div>
       </div>
       {step.note && <p className="step-note">{step.note}</p>}
-      <div className="transport">
-        <button onClick={() => goTo(index - 1)} disabled={index === 0 && t === 0} aria-label="Temps précédent">
-          <Icon name="prev" />
-        </button>
-        <button className="play-button" onClick={toggle} aria-label={playing ? 'Pause' : 'Lire'}>
-          <Icon name={playing ? 'pause' : 'play'} />
-        </button>
-        <button onClick={() => goTo(index + 1)} disabled={index === last} aria-label="Temps suivant">
-          <Icon name="next" />
-        </button>
-        <button className="speed" onClick={() => setSpeed(SPEEDS[(SPEEDS.indexOf(speed) + 1) % SPEEDS.length])} aria-label="Vitesse">
-          ×{String(speed).replace('.', ',')}
-        </button>
-      </div>
     </div>
   )
 }

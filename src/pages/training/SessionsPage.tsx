@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Icon } from '../../components/Icon'
-import { byDate, Chips, formatDate } from '../../components/ui'
+import { SessionCard } from '../../components/SessionCard'
+import { byDate, Chips, EmptyState } from '../../components/ui'
 import { useStore } from '../../data/store'
-import { clock, membersOf, totalDuration } from '../../lib/training'
+import { membersOf } from '../../lib/training'
 import type { Session } from '../../lib/types'
 import { TrainingHeader } from './TrainingHeader'
 
@@ -19,17 +20,13 @@ function SessionList({ title, sessions }: { title: string; sessions: Session[] }
           const present = marked.filter((m) => s.attendance[m.id] === 'present').length
           return (
             <li key={s.id}>
-              <a className="card session-card" href={`#/entrainement/seance/${s.id}`}>
-                <span className="session-date">
-                  {formatDate(s.date)}{s.time && ` · ${clock(s.time, 0)}`}
-                </span>
-                <strong>{[s.team, s.title].filter(Boolean).join(' · ')}</strong>
-                <span>
-                  {s.items.length} élément{s.items.length > 1 ? 's' : ''} · {totalDuration(s.items)} min
-                  {marked.length > 0 && ` · ${present}/${roster.length} présents`}
-                </span>
-                {s.published && <span className="shared">Visible par les joueurs</span>}
-              </a>
+              <SessionCard
+                session={s}
+                href={`/entrainement/seance/${s.id}`}
+                title={[s.team, s.title].filter(Boolean).join(' · ')}
+                detail={marked.length ? `${present}/${roster.length} présents` : undefined}
+                badge={<span className={s.published ? 'badge success' : 'badge'}>{s.published ? 'Partagée' : 'Privée'}</span>}
+              />
             </li>
           )
         })}
@@ -50,11 +47,9 @@ export function SessionsPage() {
       <TrainingHeader current="Séances" />
       <main>
         {sessions.length === 0 ? (
-          <div className="empty">
-            <h2>Aucune séance</h2>
-            <p>Prépare ta première séance : exercices, durées et présences.</p>
+          <EmptyState icon="calendar" title="Aucune séance" text="Prépare ta première séance : exercices, durées et présences.">
             <a className="button primary" href="#/entrainement/seance/nouveau">Créer une séance</a>
-          </div>
+          </EmptyState>
         ) : (
           <>
             {teams.length > 1 && <Chips options={teams} value={active} onChange={setTeam} />}

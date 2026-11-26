@@ -80,7 +80,7 @@ export function Attendance({ session, onChange }: Props) {
           <p className="muted">Le pointage est conservé quand tu enregistres la séance.</p>
         </>
       ) : (
-        <p className="muted">Aucun joueur dans l’effectif « {team} ». Ajoute-les ci-dessous ou dans l’onglet Effectif.</p>
+        <p className="muted">Aucun joueur dans l’effectif « {team} ». Ajoute-les ci-dessous ou dans l’onglet Équipes.</p>
       )}
       <form className="inline-form" onSubmit={add}>
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ajouter un joueur" aria-label="Nom du joueur à ajouter" maxLength={60} />

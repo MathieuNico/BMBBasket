@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Thumbnail } from '../../components/Diagram'
 import { PendingDraft } from '../../components/DraftNotice'
 import { Icon } from '../../components/Icon'
-import { byName, Chips, normalize } from '../../components/ui'
+import { byName, Chips, EmptyState, normalize, Search } from '../../components/ui'
 import { useStore } from '../../data/store'
 import { draftKey } from '../../lib/drafts'
 import { THEMES } from '../../lib/types'
@@ -26,14 +26,12 @@ export function DrillsPage() {
       <main>
         <PendingDraft table="drills" draftKey={draftKey('drills')} href="/entrainement/exercice/nouveau" />
         {drills.length === 0 ? (
-          <div className="empty">
-            <h2>Ta bibliothèque est vide</h2>
-            <p>Crée un exercice une fois, réutilise-le dans toutes tes séances.</p>
+          <EmptyState icon="whistle" title="Ta bibliothèque est vide" text="Crée un exercice une fois, réutilise-le dans toutes tes séances.">
             <a className="button primary" href="#/entrainement/exercice/nouveau">Créer un exercice</a>
-          </div>
+          </EmptyState>
         ) : (
           <>
-            <input type="search" placeholder="Rechercher un exercice" value={search} onChange={(e) => setSearch(e.target.value)} />
+            <Search label="Rechercher un exercice" value={search} onChange={setSearch} />
             {themes.length > 1 && <Chips options={[...themes]} value={active} onChange={setTheme} />}
             <ul className="grid">
               {shown.map((drill) => (

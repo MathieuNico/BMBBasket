@@ -60,18 +60,19 @@ export function DrillPage({ id }: { id: string }) {
 
   return (
     <>
-      <Header title={drill.name} back="/entrainement/exercices">
-        <a className="icon-button" href={`#/entrainement/exercice/${id}/modifier`} aria-label="Modifier">
-          <Icon name="edit" />
+      <Header title={drill.name} subtitle={`${drill.theme} · ${drill.duration} min`} back="/entrainement/exercices">
+        <a className="button soft small" href={`#/entrainement/exercice/${id}/modifier`}>
+          <Icon name="edit" /> Modifier
         </a>
       </Header>
       <main>
         <PendingDraft table="drills" draftKey={draftKey('drills', id)} href={`/entrainement/exercice/${id}/modifier`} />
         {hasDiagram(drill) && <PlayPlayer key={drill.id} scene={drill} />}
-        <div className="card">
-          <span className="tag">{drill.theme} · {drill.duration} min</span>
-          <DrillDetails drill={drill} />
-        </div>
+        {(drill.description + drill.variants + drill.material).trim() && (
+          <div className="card">
+            <DrillDetails drill={drill} />
+          </div>
+        )}
         <div className="row">
           <button className="button ghost" onClick={duplicate}><Icon name="copy" /> Dupliquer</button>
           <button className="button ghost danger-text" onClick={erase}><Icon name="trash" /> Supprimer</button>

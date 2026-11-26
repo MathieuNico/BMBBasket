@@ -53,6 +53,7 @@ export function AuthPage() {
     <div className="login">
       <Logo />
       <h1>BMB Playbook</h1>
+      <p className="muted">Les systèmes et les séances de Bégrolles le May Basket</p>
       <form className="card form" onSubmit={submit}>
         <div className="segmented">
           <button type="button" className={mode === 'signin' ? 'active' : ''} aria-pressed={mode === 'signin'} onClick={() => switchTo('signin')}>

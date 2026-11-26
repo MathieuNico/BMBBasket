@@ -4,13 +4,14 @@ import { PendingDraft } from '../../components/DraftNotice'
 import { Icon } from '../../components/Icon'
 import { Picker } from '../../components/Picker'
 import { PlayPlayer } from '../../components/PlayPlayer'
+import { TeamPicker } from '../../components/TeamPicker'
 import { Header, NotFound, today, useFeedback } from '../../components/ui'
 import { useStore } from '../../data/store'
 import { draftKey } from '../../lib/drafts'
 import { uid } from '../../lib/engine'
 import { navigate, releaseGuard } from '../../lib/router'
 import { clock, copySession, hasDiagram, itemFor, newSession, sameTeam, totalDuration } from '../../lib/training'
-import { TEAMS, type Drill, type Session, type SessionItem } from '../../lib/types'
+import type { Drill, Session, SessionItem } from '../../lib/types'
 import { useDraft } from '../../lib/useDraft'
 import { Attendance } from './Attendance'
 import { DrillDetails } from './DrillPage'
@@ -105,7 +106,6 @@ function SessionForm({ initial, stored, isNew }: { initial: Session; stored?: Se
 
   const { items } = session
   const knownTeam = teams.some((t) => sameTeam(t.name, session.team))
-  const teamNames = [...new Set([...teams.map((t) => t.name), ...TEAMS])]
   const setItems = (list: SessionItem[]) => patch({ items: list })
   const total = totalDuration(items)
   const drillOf = (item: SessionItem) => drills.find((d) => d.id === item.drillId)
@@ -168,16 +168,10 @@ function SessionForm({ initial, stored, isNew }: { initial: Session; stored?: Se
 
   return (
     <>
-      <Header title={isNew ? 'Nouvelle séance' : 'Séance'} back="/entrainement">
-        <button className="button accent" onClick={() => submit()} disabled={saving || (!isNew && !dirty)}>Enregistrer</button>
-      </Header>
+      <Header title={isNew ? 'Nouvelle séance' : 'Séance'} subtitle={session.team || undefined} back="/entrainement" />
       <main>
         <section className="card form">
-          <label>
-            Équipe
-            <input list="teams" value={session.team} onChange={(e) => patch({ team: e.target.value })} placeholder="Ex. : U15F" maxLength={30} />
-            <datalist id="teams">{teamNames.map((t) => <option key={t} value={t} />)}</datalist>
-          </label>
+          <TeamPicker value={session.team} onChange={(team) => patch({ team })} />
           <div className="row">
             <label>
               Date
@@ -200,21 +194,21 @@ function SessionForm({ initial, stored, isNew }: { initial: Session; stored?: Se
 
         <section className="card">
           <label className="switch">
-            <input type="checkbox" checked={!!session.published} onChange={(e) => patch({ published: e.target.checked })} />
             Visible par les joueurs
+            <input type="checkbox" checked={!!session.published} onChange={(e) => patch({ published: e.target.checked })} />
           </label>
           <p className="muted">
             {!session.published ? (
               'Réservée aux coachs.'
             ) : !knownTeam ? (
-              <>Les joueurs ne peuvent pas rejoindre cette équipe : ajoute-la dans l’onglet <a className="link" href="#/joueurs">Joueurs</a>.</>
+              <>Les joueurs ne peuvent pas rejoindre cette équipe : ajoute-la dans l’onglet <a className="link" href="#/equipes">Équipes</a>.</>
             ) : (
-              'Les joueurs voient le déroulé et les exercices, jamais les présences ni tes notes. Pense à enregistrer.'
+              'Ils voient le déroulé et les exercices, jamais les présences ni tes notes.'
             )}
           </p>
         </section>
 
-        <div className="segmented outlined">
+        <div className="segmented">
           <button className={part === 'plan' ? 'active' : ''} aria-pressed={part === 'plan'} onClick={() => setPart('plan')}>Déroulé</button>
           <button className={part === 'attendance' ? 'active' : ''} aria-pressed={part === 'attendance'} onClick={() => setPart('attendance')}>Présences</button>
         </div>
@@ -275,6 +269,11 @@ function SessionForm({ initial, stored, isNew }: { initial: Session; stored?: Se
           </div>
         )}
       </main>
+      {(isNew || dirty) && (
+        <div className="savebar">
+          <button className="button primary" onClick={() => submit()} disabled={saving}>Enregistrer la séance</button>
+        </div>
+      )}
       {picking && (
         <Picker
           title="Ajouter des exercices"

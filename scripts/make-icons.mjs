@@ -1,10 +1,10 @@
-// Génère les icônes PNG de l'application (ballon jaune sur fond bleu BMB).
+// Génère les icônes PNG de l'application (ballon jaune sur fond bleu nuit).
 // Pour utiliser le logo du club à la place, remplace simplement les fichiers de public/icons.
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { deflateSync, crc32 } from 'node:zlib'
 
-const BLUE = [27, 73, 166]
-const YELLOW = [254, 242, 1]
+const BLUE = [21, 36, 80]
+const YELLOW = [255, 207, 51]
 
 function pixel(x, y) {
   // coordonnées normalisées autour du centre

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Icon } from './components/Icon'
+import { Nav, type NavItem } from './components/Nav'
 import { FeedbackProvider, NotFound } from './components/ui'
 import { forgetAccess } from './data/access'
 import { clearCache, supabase } from './data/cloudRepo'
@@ -10,29 +10,30 @@ import { playerContent } from './lib/sharing'
 import { AuthPage } from './pages/AuthPage'
 import { EditorPage } from './pages/EditorPage'
 import { Member } from './pages/Member'
+import { HomePage } from './pages/HomePage'
 import { PlayPage } from './pages/PlayPage'
-import { PlayersPage } from './pages/PlayersPage'
 import { PlaysPage } from './pages/PlaysPage'
 import { PlayerView } from './pages/player/PlayerView'
 import { SettingsPage } from './pages/SettingsPage'
 import { DrillEditorPage } from './pages/training/DrillEditorPage'
 import { DrillPage } from './pages/training/DrillPage'
+import { TeamPage } from './pages/teams/TeamPage'
+import { TeamsPage } from './pages/teams/TeamsPage'
 import { DrillsPage } from './pages/training/DrillsPage'
-import { RosterPage } from './pages/training/RosterPage'
 import { SessionPage } from './pages/training/SessionPage'
 import { SessionsPage } from './pages/training/SessionsPage'
 
-const TABS = [
-  { path: 'systemes', label: 'Systèmes', icon: 'playbook' },
-  { path: 'entrainement', label: 'Entraînement', icon: 'whistle' },
-  { path: 'joueurs', label: 'Joueurs', icon: 'share' },
-  { path: 'reglages', label: 'Réglages', icon: 'settings' },
-] as const
+const TABS: NavItem[] = [
+  { id: 'accueil', href: '/accueil', label: 'Accueil', icon: 'home' },
+  { id: 'systemes', href: '/systemes', label: 'Systèmes', icon: 'playbook' },
+  { id: 'entrainement', href: '/entrainement', label: 'Entraînement', icon: 'whistle' },
+  { id: 'equipes', href: '/equipes', label: 'Équipes', icon: 'users' },
+  { id: 'reglages', href: '/reglages', label: 'Réglages', icon: 'settings', desktopOnly: true },
+]
 
 function Training({ path }: { path: string[] }) {
   const [kind, id, sub] = path
   if (kind === 'exercices') return <DrillsPage />
-  if (kind === 'effectif') return <RosterPage />
   if (kind === 'seance' && id) return <SessionPage key={id} id={id === 'nouveau' ? undefined : id} />
   if (kind === 'exercice' && id === 'nouveau') return <DrillEditorPage key="new" sessionId={sub} />
   if (kind === 'exercice' && id) {
@@ -41,26 +42,33 @@ function Training({ path }: { path: string[] }) {
   return <SessionsPage />
 }
 
+function Systems({ path }: { path: string[] }) {
+  const [id, sub] = path
+  if (id === 'nouveau') return <EditorPage key="new" />
+  if (id && sub === 'modifier') return <EditorPage key={id} id={id} />
+  if (id) return <PlayPage key={id} id={id} />
+  return <PlaysPage />
+}
+
 /** Ce que verront les joueurs d'une équipe, calculé à partir des données du coach. */
 function Preview({ path }: { path: string[] }) {
   const store = useStore()
   const [id, ...rest] = path
   const team = store.teams.find((t) => t.id === id)
-  if (!team) return <NotFound back="/joueurs" text="Cette équipe n’a plus d’accès." />
+  if (!team) return <NotFound back="/equipes" text="Cette équipe n’existe plus." />
   return (
     <PlayerView
       content={playerContent(store, team.name)}
       base={`/apercu/${team.id}`}
       path={rest}
-      back="/joueurs"
+      back={`/equipes/${team.id}`}
       banner={<p className="warning-box">Aperçu : voici ce que voient les joueurs {team.name}.</p>}
     />
   )
 }
 
 function Screens({ email }: { email?: string }) {
-  const [section = 'systemes', ...path] = useRoute()
-  const [id, sub] = path
+  const [section = 'accueil', ...path] = useRoute()
   const { status, error, offline, reload } = useStore()
 
   if (status === 'loading') return <p className="splash">Chargement…</p>
@@ -76,42 +84,30 @@ function Screens({ email }: { email?: string }) {
 
   if (section === 'apercu') return <Preview path={path} />
 
-  // pas de barre d'onglets pendant le dessin
+  // anciennes adresses, ou retour de connexion
+  const alias = section === 'joueurs' ? 'equipes' : section
+  const current = TABS.some((t) => t.id === alias) ? alias : 'accueil'
+  // pas de navigation pendant le dessin
   const drawing =
-    (section === 'systemes' && (id === 'nouveau' || sub === 'modifier')) ||
-    (section === 'entrainement' && id === 'exercice' && (sub === 'nouveau' || path[2] === 'modifier'))
-  // après connexion, ou sur une ancienne adresse, on revient aux systèmes
-  const current = TABS.some((t) => t.path === section) ? section : 'systemes'
+    (current === 'systemes' && (path[0] === 'nouveau' || path[1] === 'modifier')) ||
+    (current === 'entrainement' && path[0] === 'exercice' && (path[1] === 'nouveau' || path[2] === 'modifier'))
 
   return (
-    <>
+    <div className={drawing ? 'shell' : 'shell with-nav'}>
       {offline && <p className="offline">Hors ligne : dernières données enregistrées sur ce téléphone.</p>}
-      {current === 'entrainement' ? (
+      {current === 'systemes' ? (
+        <Systems path={path} />
+      ) : current === 'entrainement' ? (
         <Training path={path} />
-      ) : current === 'joueurs' ? (
-        <PlayersPage />
+      ) : current === 'equipes' ? (
+        path[0] ? <TeamPage key={path[0]} id={path[0]} /> : <TeamsPage />
       ) : current === 'reglages' ? (
         <SettingsPage email={email} />
-      ) : id === 'nouveau' ? (
-        <EditorPage key="new" />
-      ) : sub === 'modifier' ? (
-        <EditorPage key={id} id={id} />
-      ) : id ? (
-        <PlayPage key={id} id={id} />
       ) : (
-        <PlaysPage />
+        <HomePage />
       )}
-      {!drawing && (
-        <nav className="tabs">
-          {TABS.map((tab) => (
-            <a key={tab.path} href={`#/${tab.path}`} className={tab.path === current ? 'active' : ''}>
-              <Icon name={tab.icon} />
-              {tab.label}
-            </a>
-          ))}
-        </nav>
-      )}
-    </>
+      {!drawing && <Nav items={TABS} current={current} />}
+    </div>
   )
 }
 

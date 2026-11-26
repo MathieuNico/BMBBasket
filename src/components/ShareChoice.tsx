@@ -3,6 +3,7 @@ import { useStore } from '../data/store'
 import { isSharedWith } from '../lib/sharing'
 import { sameTeam } from '../lib/training'
 import type { Play } from '../lib/types'
+import { Icon } from './Icon'
 import { useFeedback } from './ui'
 
 /** Choix des équipes dont les joueurs peuvent consulter un système. */
@@ -17,9 +18,11 @@ export function ShareChoice({ play }: { play: Play }) {
 
   const toggle = async (team: string) => {
     setSaving(true)
-    const next = isSharedWith(play, team) ? shared.filter((t) => !sameTeam(t, team)) : [...shared, team]
+    const removing = isSharedWith(play, team)
+    const next = removing ? shared.filter((t) => !sameTeam(t, team)) : [...shared, team]
     try {
       await save('plays', { ...play, teams: next })
+      toast(removing ? `Retiré pour ${team}` : `Partagé avec ${team}`)
     } catch (e) {
       toast((e as Error).message)
     }
@@ -28,7 +31,10 @@ export function ShareChoice({ play }: { play: Play }) {
 
   return (
     <section className="card">
-      <h2>Partage aux joueurs</h2>
+      <div className="section-head">
+        <h2>Partager aux joueurs</h2>
+        <span className={shared.length ? 'badge success' : 'badge'}>{shared.length ? 'Partagé' : 'Privé'}</span>
+      </div>
       {names.length > 0 ? (
         <>
           <div className="chips wrap">
@@ -36,18 +42,17 @@ export function ShareChoice({ play }: { play: Play }) {
               const active = isSharedWith(play, name)
               return (
                 <button key={name} className={active ? 'chip active' : 'chip'} aria-pressed={active} disabled={saving} onClick={() => toggle(name)}>
+                  <Icon name={active ? 'check' : 'plus'} />
                   {name}
                 </button>
               )
             })}
           </div>
-          <p className="muted">
-            {shared.length ? `Visible par les joueurs : ${shared.join(', ')}.` : 'Réservé aux coachs. Touche une équipe pour le publier.'}
-          </p>
+          <p className="muted">Touche une équipe pour lui donner ou lui retirer l’accès.</p>
         </>
       ) : (
         <p className="muted">
-          Ajoute d’abord une équipe dans l’onglet <a className="link" href="#/joueurs">Joueurs</a>.
+          Ajoute d’abord une équipe dans l’onglet <a className="link" href="#/equipes">Équipes</a>.
         </p>
       )}
     </section>

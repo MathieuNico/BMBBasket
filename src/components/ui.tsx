@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
-import { Icon } from './Icon'
+import { Icon, type IconName } from './Icon'
 
 /** Logo du club : dépose le fichier public/logo.png pour remplacer l'écusson par défaut. */
 export function Logo() {
@@ -11,7 +11,14 @@ export function Logo() {
   )
 }
 
-export function Header({ title, back, children }: { title: ReactNode; back?: string; children?: ReactNode }) {
+interface HeaderProps {
+  title: ReactNode
+  subtitle?: string
+  back?: string
+  children?: ReactNode
+}
+
+export function Header({ title, subtitle, back, children }: HeaderProps) {
   return (
     <header className="header">
       {back ? (
@@ -21,9 +28,44 @@ export function Header({ title, back, children }: { title: ReactNode; back?: str
       ) : (
         <Logo />
       )}
-      {typeof title === 'string' ? <h1>{title}</h1> : title}
+      {typeof title === 'string' ? (
+        <div className="header-title">
+          <h1>{title}</h1>
+          {subtitle && <small>{subtitle}</small>}
+        </div>
+      ) : (
+        title
+      )}
       <div className="header-actions">{children}</div>
     </header>
+  )
+}
+
+interface EmptyProps {
+  icon: IconName
+  title: string
+  text: string
+  children?: ReactNode
+}
+
+/** Écran vide : ce qu'on peut faire ici, et le bouton pour commencer. */
+export function EmptyState({ icon, title, text, children }: EmptyProps) {
+  return (
+    <div className="empty">
+      <span className="tile-icon"><Icon name={icon} /></span>
+      <h2>{title}</h2>
+      <p>{text}</p>
+      {children}
+    </div>
+  )
+}
+
+export function Search({ value, onChange, label }: { value: string; onChange(value: string): void; label: string }) {
+  return (
+    <div className="search">
+      <Icon name="search" />
+      <input type="search" placeholder={label} aria-label={label} value={value} onChange={(e) => onChange(e.target.value)} />
+    </div>
   )
 }
 
