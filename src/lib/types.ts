@@ -64,25 +64,8 @@ export interface Play {
   start: Record<PlayerId, Point>
   ball: PlayerId | null
   steps: Step[]
-  updatedAt: string
-}
-
-export interface MatchPlay {
-  playId: string
-  /** Système mis en évidence pour ce match. */
-  key: boolean
-  note: string
-}
-
-export interface Match {
-  id: string
-  opponent: string
-  team: string
-  date: string
-  time: string
-  home: boolean
-  notes: string
-  plays: MatchPlay[]
+  /** Équipes dont les joueurs peuvent consulter ce système. Absent ou vide : réservé aux coachs. */
+  teams?: string[]
   updatedAt: string
 }
 
@@ -132,10 +115,13 @@ export interface Session {
   time: string
   title: string
   objective: string
+  /** Réservé aux coachs. */
   notes: string
   items: SessionItem[]
-  /** Pointage par identifiant de joueur. */
+  /** Pointage par identifiant de joueur, réservé aux coachs. */
   attendance: Record<string, Presence>
+  /** Visible par les joueurs de l'équipe. */
+  published?: boolean
   updatedAt: string
 }
 
@@ -147,16 +133,23 @@ export interface Member {
   updatedAt: string
 }
 
+/** Équipe du club, à laquelle les joueurs se rattachent. */
+export interface Team {
+  id: string
+  name: string
+  updatedAt: string
+}
+
 export const TEAMS = ['U9', 'U11F', 'U11M', 'U13F', 'U13M', 'U15F', 'U15M', 'U18F', 'U18M', 'Seniors F', 'Seniors M']
 
 export interface Data {
   plays: Play[]
-  matches: Match[]
   drills: Drill[]
   sessions: Session[]
   members: Member[]
+  teams: Team[]
 }
 
 export type Table = keyof Data
 
-export const TABLES: Table[] = ['plays', 'matches', 'drills', 'sessions', 'members']
+export const TABLES: Table[] = ['plays', 'drills', 'sessions', 'members', 'teams']

@@ -18,16 +18,16 @@ const client = () => {
 }
 
 // « Load failed » est le message de Safari sur iPhone
-const isNetworkError = (message: string) => /fetch|network|load failed/i.test(message)
+export const isNetworkError = (message: string) => /fetch|network|load failed/i.test(message)
 
-const explain = (message: string) =>
+const explain =(message: string) =>
   isNetworkError(message) ? 'Pas de réseau : modification non enregistrée.' : `Erreur du serveur : ${message}`
 
 export const cloudRepo: Repo = {
   async load(): Promise<Loaded> {
     const db = client()
     const [coach, ...results] = await Promise.all([
-      db.from('coaches').select('email').limit(1),
+      db.from('staff').select('user_id').limit(1),
       ...TABLES.map((table) => db.from(table).select('data')),
     ])
     const error = coach.error ?? results.find((r) => r.error)?.error
@@ -40,7 +40,7 @@ export const cloudRepo: Repo = {
     }
     if (!coach.data!.length) {
       clearCache()
-      throw new Error("Ce compte n'est pas encore autorisé. Demande à l'administrateur du club de t'ajouter à la liste des coachs.")
+      throw new Error("Ce compte n'est plus dans la liste des coachs. Vois avec le responsable du club.")
     }
     const data = emptyData()
     TABLES.forEach((table, i) => {

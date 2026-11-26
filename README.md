@@ -1,19 +1,26 @@
 # BMB Playbook
 
-Application du Bégrolles le May Basket pour dessiner les systèmes de jeu et préparer les matchs, pensée pour le téléphone.
+Application du Bégrolles le May Basket pour que les coachs préparent les entraînements et partagent les systèmes de jeu avec leurs joueurs. Pensée pour le téléphone. Elle sert à la préparation et à l'apprentissage, pas pendant les matchs.
 
-## Ce qu'elle fait
+## Pour les coachs
 
-- **Systèmes** : dessin sur demi-terrain ou terrain entier (courses, dribbles, passes, écrans, tirs), temps par temps, avec une consigne par temps, des défenseurs optionnels et une lecture animée. Placements de départ en un geste (4-1, 5 dehors, Horns, 1-4, remises en jeu, individuelle, zones).
-- **Ardoise de temps mort** : pions à déplacer et dessin libre au doigt, rien n'est enregistré. Accessible depuis Systèmes, Matchs et le mode match.
-- **Brouillon automatique** : un système ou un exercice non enregistré est repris si la page a été fermée. Le brouillon reste sur l'appareil ; quitter volontairement sans enregistrer l'efface.
+- **Systèmes** : dessin sur demi-terrain ou terrain entier (courses, dribbles, passes, écrans, tirs), temps par temps, avec une consigne par temps, des défenseurs optionnels et une lecture animée. Placements de départ en un geste. Chaque système se publie pour une ou plusieurs équipes.
 - **Entraînement**
-  - *Séances* : équipe, date, thème, objectif, déroulé avec durées et horaires, temps libres, matériel à prévoir, duplication d'une séance.
-  - *Exercices* : bibliothèque classée par thème, avec fiche (consignes, variantes, matériel) et dessin libre : joueurs, défenseurs, coachs, plots, plusieurs ballons.
-  - *Effectif* : joueurs par équipe, pointage présent / absent / excusé et taux de présence.
-- **Matchs** : adversaire, équipe, date, plan de match, choix et ordre des systèmes, mise en évidence par une étoile, consigne par système.
-- **Mode match** : plein écran, systèmes étoilés en premier, écran maintenu allumé.
+  - *Séances* : équipe, date, thème, objectif, déroulé avec durées et horaires, matériel à prévoir, duplication. Une séance n'est visible des joueurs que si « Visible par les joueurs » est coché.
+  - *Exercices* : bibliothèque classée par thème, avec fiche et dessin libre (joueurs, défenseurs, coachs, plots, plusieurs ballons).
+  - *Effectif* : joueurs par équipe, présences.
+- **Joueurs** : code du club à communiquer, équipes, liste des inscrits (changer d'équipe ou retirer un accès), aperçu de ce que voit chaque équipe.
+- **Brouillon automatique** : un dessin non enregistré est repris si la page a été fermée.
 - **Sauvegarde** : export et import dans un fichier.
+
+## Pour les joueurs
+
+Chaque joueur crée un compte, saisit le **code du club**, puis choisit son équipe. Il a ensuite accès, **en consultation seule** :
+
+- aux séances publiées de son équipe, avec le déroulé et les exercices ;
+- aux systèmes publiés pour son équipe, animés temps par temps.
+
+Il ne voit ni les notes des coachs, ni les présences, ni l'effectif, ni les brouillons. Les consignes et descriptions publiées lui sont visibles. Seul un coach peut ensuite changer son équipe.
 
 L'effectif contient des noms de joueurs, souvent mineurs : n'enregistrer que le nécessaire (prénom et initiale).
 
@@ -31,34 +38,46 @@ Puis ouvrir http://localhost:5173. Autres commandes : `npm test` et `npm run bui
 
 ## Les deux modes
 
-| Mode | Quand | Où sont les données |
-| --- | --- | --- |
-| Sur cet appareil | par défaut | dans le navigateur de l'appareil |
-| Coachs du club | quand `.env.local` est rempli | sur un serveur Supabase, partagées entre coachs |
+| Mode | Quand | Où sont les données | Accès joueurs |
+| --- | --- | --- | --- |
+| Sur cet appareil | par défaut, sans comptes | dans le navigateur de l'appareil | non (aperçu seulement) |
+| Serveur du club | quand les variables Supabase sont renseignées : compte obligatoire | sur Supabase, partagées | oui |
 
 Pour passer du premier au second sans rien perdre : **Réglages > Exporter** avant, puis **Importer** une fois connecté.
 
-## Brancher les comptes coachs (Supabase)
+## Brancher le serveur (Supabase)
+
+Sans serveur, il n'y a ni comptes ni partage : l'application s'ouvre directement.
 
 1. Créer un compte et un projet sur https://supabase.com (offre gratuite, région Europe).
-2. **SQL Editor** : coller le contenu de `supabase/schema.sql` et lancer (à relancer après une mise à jour de l'application qui modifie ce fichier).
-3. **Authentication > Sign In / Providers** : désactiver les inscriptions libres (« Allow new users to sign up »).
-4. **Authentication > Users > Add user** : créer chaque coach (e-mail + mot de passe provisoire, case « Auto Confirm User » cochée).
-5. Autoriser ces coachs, dans le **SQL Editor** :
+2. Créer la base, au choix :
+   - **par GitHub** : dans **Project Settings > Integrations**, relier le dépôt, dossier de travail `.`, branche de production `main`, option **Deploy to production** activée. Les fichiers de `supabase/migrations` sont alors appliqués à chaque envoi sur `main` ;
+   - **à la main** : dans **SQL Editor**, coller chaque fichier de `supabase/migrations`, dans l'ordre, et lancer.
+3. **Authentication > Sign In / Providers** :
+   - laisser **« Allow new users to sign up » activé** (les joueurs créent leur compte ; sans le code du club, un compte ne voit rien) ;
+   - désactiver **« Confirm email »** : le service d'e-mails fourni par défaut est très limité et ne convient pas pour inscrire une équipe. Les adresses ne sont alors pas vérifiées. Pour les vérifier, garder l'option et configurer son propre serveur d'envoi (SMTP).
+4. Désigner les coachs :
+   - **Authentication > Users > Add user** : créer le compte du coach (case « Auto Confirm User » cochée). Si l'adresse existe déjà sans que vous l'ayez créée, supprimez ce compte avant de continuer.
+   - puis, dans le **SQL Editor** :
 
    ```sql
-   insert into public.coaches (email, name) values
-     ('coach@exemple.fr', 'Prénom');
+   insert into public.staff (user_id, name)
+   select id, 'Prénom' from auth.users where email = 'coach@exemple.fr';
    ```
 
-6. Copier `.env.example` en `.env.local` et y mettre l'URL du projet et la clé **publique**.
-7. Relancer `npm run dev`.
+5. Sur l'ordinateur : copier `.env.example` en `.env.local`, y mettre l'URL du projet et la clé **publique**, puis relancer `npm run dev`.
+6. En ligne (Vercel) : ajouter les deux mêmes variables dans **Settings > Environment Variables**, puis redéployer.
+7. Se connecter en coach : dans l'onglet **Joueurs**, ajouter les équipes puis envoyer le code du club.
 
-Retirer un coach : `delete from public.coaches where email = 'coach@exemple.fr';` puis supprimer son utilisateur.
+Retirer un coach : `delete from public.staff where user_id = (select id from auth.users where email = 'coach@exemple.fr');`
+
+Retirer un joueur : onglet **Joueurs**, croix à côté de son nom, puis changer le code du club pour l'empêcher de se réinscrire.
 
 À savoir :
 
-- Hors réseau, les systèmes déjà chargés restent consultables ; les modifications demandent une connexion.
+- Mot de passe oublié : l'application ne propose pas encore de réinitialisation. Le responsable intervient depuis Supabase (supprimer le compte pour que la personne le recrée).
+- Comptes de mineurs : pour les moins de 15 ans, l'accord d'un parent est nécessaire. N'enregistrer que le prénom et l'initiale.
+- Hors réseau, les contenus déjà chargés restent consultables ; les modifications demandent une connexion.
 - Si deux coachs modifient le même système en même temps, le dernier enregistrement l'emporte.
 - Un projet Supabase gratuit peut être mis en pause après une période sans activité ; on le réactive depuis son tableau de bord.
 

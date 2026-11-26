@@ -38,12 +38,13 @@ export const itemFor = (drill: Drill): SessionItem => ({
   note: '',
 })
 
-/** Reprend une séance : même déroulé, sans date ni pointage. */
+/** Reprend une séance : même déroulé, sans date ni pointage, non partagée. */
 export const copySession = (session: Session): Session => ({
   ...structuredClone(session),
   id: uid(),
   date: '',
   attendance: {},
+  published: false,
 })
 
 export const hasDiagram = (scene: Scene) => Object.keys(scene.start).length > 0 || scene.cones.length > 0

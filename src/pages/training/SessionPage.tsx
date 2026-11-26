@@ -9,7 +9,7 @@ import { useStore } from '../../data/store'
 import { draftKey } from '../../lib/drafts'
 import { uid } from '../../lib/engine'
 import { navigate, releaseGuard } from '../../lib/router'
-import { clock, copySession, hasDiagram, itemFor, newSession, totalDuration } from '../../lib/training'
+import { clock, copySession, hasDiagram, itemFor, newSession, sameTeam, totalDuration } from '../../lib/training'
 import { TEAMS, type Drill, type Session, type SessionItem } from '../../lib/types'
 import { useDraft } from '../../lib/useDraft'
 import { Attendance } from './Attendance'
@@ -72,7 +72,7 @@ function Item({ item, drill, number, start, first, last, onChange, onMove, onRem
       <input
         value={item.note}
         aria-label={`Consigne pour ${name}`}
-        placeholder="Consigne pour cette séance"
+        placeholder="Consigne (visible par les joueurs)"
         onChange={(e) => onChange({ note: e.target.value })}
       />
       <div className="entry-actions">
@@ -96,7 +96,7 @@ function Item({ item, drill, number, start, first, last, onChange, onMove, onRem
 }
 
 function SessionForm({ initial, stored, isNew }: { initial: Session; stored?: Session; isNew: boolean }) {
-  const { drills, save, remove } = useStore()
+  const { drills, teams, save, remove } = useStore()
   const { confirm, toast } = useFeedback()
   const { draft: session, dirty, patch, markSaved } = useDraft(() => initial, stored)
   const [part, setPart] = useState<'plan' | 'attendance'>('plan')
@@ -104,6 +104,8 @@ function SessionForm({ initial, stored, isNew }: { initial: Session; stored?: Se
   const [saving, setSaving] = useState(false)
 
   const { items } = session
+  const knownTeam = teams.some((t) => sameTeam(t.name, session.team))
+  const teamNames = [...new Set([...teams.map((t) => t.name), ...TEAMS])]
   const setItems = (list: SessionItem[]) => patch({ items: list })
   const total = totalDuration(items)
   const drillOf = (item: SessionItem) => drills.find((d) => d.id === item.drillId)
@@ -174,7 +176,7 @@ function SessionForm({ initial, stored, isNew }: { initial: Session; stored?: Se
           <label>
             Équipe
             <input list="teams" value={session.team} onChange={(e) => patch({ team: e.target.value })} placeholder="Ex. : U15F" maxLength={30} />
-            <datalist id="teams">{TEAMS.map((t) => <option key={t} value={t} />)}</datalist>
+            <datalist id="teams">{teamNames.map((t) => <option key={t} value={t} />)}</datalist>
           </label>
           <div className="row">
             <label>
@@ -194,6 +196,22 @@ function SessionForm({ initial, stored, isNew }: { initial: Session; stored?: Se
             Objectif
             <textarea rows={2} value={session.objective} onChange={(e) => patch({ objective: e.target.value })} placeholder="Ce que les joueurs doivent savoir faire à la fin" />
           </label>
+        </section>
+
+        <section className="card">
+          <label className="switch">
+            <input type="checkbox" checked={!!session.published} onChange={(e) => patch({ published: e.target.checked })} />
+            Visible par les joueurs
+          </label>
+          <p className="muted">
+            {!session.published ? (
+              'Réservée aux coachs.'
+            ) : !knownTeam ? (
+              <>Les joueurs ne peuvent pas rejoindre cette équipe : ajoute-la dans l’onglet <a className="link" href="#/joueurs">Joueurs</a>.</>
+            ) : (
+              'Les joueurs voient le déroulé et les exercices, jamais les présences ni tes notes. Pense à enregistrer.'
+            )}
+          </p>
         </section>
 
         <div className="segmented outlined">
@@ -244,7 +262,7 @@ function SessionForm({ initial, stored, isNew }: { initial: Session; stored?: Se
               </div>
             )}
             <label>
-              Notes
+              Notes réservées aux coachs
               <textarea rows={3} value={session.notes} onChange={(e) => patch({ notes: e.target.value })} placeholder="Groupes, remarques…" />
             </label>
           </>

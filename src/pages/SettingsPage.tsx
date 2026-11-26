@@ -36,7 +36,6 @@ function Account({ email }: { email: string }) {
 const summary = (data: Data) =>
   [
     `${data.plays.length} système(s)`,
-    `${data.matches.length} match(s)`,
     `${data.drills.length} exercice(s)`,
     `${data.sessions.length} séance(s)`,
     `${data.members.length} joueur(s)`,
@@ -45,8 +44,8 @@ const summary = (data: Data) =>
 export function SettingsPage({ email }: { email?: string }) {
   const store = useStore()
   const { confirm, toast } = useFeedback()
-  const { plays, matches, drills, sessions, members } = store
-  const data: Data = { plays, matches, drills, sessions, members }
+  const { plays, drills, sessions, members, teams } = store
+  const data: Data = { plays, drills, sessions, members, teams }
 
   const exportData = () => {
     const url = URL.createObjectURL(new Blob([JSON.stringify(data)], { type: 'application/json' }))
@@ -84,7 +83,7 @@ export function SettingsPage({ email }: { email?: string }) {
             <h2>Mode sur cet appareil</h2>
             <p>
               Tes données sont enregistrées uniquement dans ce navigateur. Pour les partager entre coachs,
-              il faut brancher le serveur du club (voir le fichier README).
+              et les montrer aux joueurs, il faut brancher le serveur du club (voir le fichier README).
             </p>
           </section>
         )}

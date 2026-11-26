@@ -1,0 +1,4 @@
+# Fichier attendu par l'intégration GitHub de Supabase.
+# Les migrations de supabase/migrations sont appliquées au projet à chaque envoi sur main
+# (option « Deploy to production », dossier de travail « . »).
+project_id = "BMBBasket"

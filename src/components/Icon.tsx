@@ -6,9 +6,8 @@ const PATHS = {
   pause: 'M8 5v14M16 5v14',
   plus: 'M12 5v14M5 12h14',
   playbook: 'M5 4h12a2 2 0 012 2v14H7a2 2 0 01-2-2zM5 18a2 2 0 012-2h12M9 8h6',
-  calendar: 'M5 6h14v14H5zM5 10h14M9 3v5M15 3v5',
+  share: 'M16 8a3 3 0 100-6 3 3 0 000 6zM6 15a3 3 0 100-6 3 3 0 000 6zM16 22a3 3 0 100-6 3 3 0 000 6zM8.6 10.6l4.8-4.2M8.6 13.4l4.8 4.2',
   settings: 'M4 7h10M18 7h2M4 17h4M12 17h8M16 5v4M10 15v4',
-  star: 'M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 16.900l-5.2 2.8 1-5.9-4.3-4.1 5.9-.8z',
   trash: 'M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13',
   copy: 'M9 9h11v11H9zM5 15H4V4h11v1',
   edit: 'M4 20l4-1L19 8l-3-3L5 16zM14 7l3 3',
@@ -20,9 +19,9 @@ const PATHS = {
   whistle: 'M9 9h12v4h-5.5a6 6 0 11-9-5.2M9 15a0.5 0.5 0 100 .1M6 3v2M11 3l-1 2',
 } as const
 
-export function Icon({ name, filled }: { name: keyof typeof PATHS; filled?: boolean }) {
+export function Icon({ name }: { name: keyof typeof PATHS }) {
   return (
-    <svg className="icon" viewBox="0 0 24 24" aria-hidden="true" fill={filled || name === 'play' ? 'currentColor' : 'none'}>
+    <svg className="icon" viewBox="0 0 24 24" aria-hidden="true" fill={name === 'play' ? 'currentColor' : 'none'}>
       <path d={PATHS[name]} />
     </svg>
   )

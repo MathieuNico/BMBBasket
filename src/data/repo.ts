@@ -12,4 +12,4 @@ export interface Repo {
   remove(table: Table, id: string): Promise<void>
 }
 
-export const emptyData = (): Data => ({ plays: [], matches: [], drills: [], sessions: [], members: [] })
+export const emptyData = (): Data => ({ plays: [], drills: [], sessions: [], members: [], teams: [] })

@@ -30,7 +30,6 @@ const CHECKS: Record<Table, (item: Record<string, any>) => boolean> = {
     isObject(p.start) &&
     [...OFFENSE, ...DEFENSE].every((id) => isPoint(p.start[id])) &&
     areSteps(p.steps, p.start),
-  matches: (m) => isString(m.opponent) && isString(m.date) && Array.isArray(m.plays),
   drills: (d) =>
     isString(d.name) &&
     isCourt(d.court) &&
@@ -43,6 +42,7 @@ const CHECKS: Record<Table, (item: Record<string, any>) => boolean> = {
     areSteps(d.steps, d.start),
   sessions: (s) => isString(s.team) && isString(s.date) && Array.isArray(s.items) && isObject(s.attendance),
   members: (m) => isString(m.name) && isString(m.team),
+  teams: (t) => isString(t.name),
 }
 
 export const isValidItem = (table: Table, item: unknown) => isObject(item) && isUuid(item.id) && CHECKS[table](item)
@@ -55,11 +55,11 @@ export function parseBackup(text: string): Data {
   } catch {
     throw invalid
   }
-  if (!isObject(data) || !Array.isArray(data.plays) || !Array.isArray(data.matches)) throw invalid
+  if (!isObject(data) || !Array.isArray(data.plays)) throw invalid
 
   const out = {} as Record<Table, unknown[]>
   for (const table of TABLES) {
-    // les sauvegardes d'avant la partie entraînement n'ont ni exercices ni séances
+    // les sauvegardes plus anciennes n'ont pas toutes les rubriques
     const items = data[table] ?? []
     if (!Array.isArray(items) || !items.every((x) => isValidItem(table, x))) {
       throw new Error('La sauvegarde est abîmée : rien n’a été importé.')

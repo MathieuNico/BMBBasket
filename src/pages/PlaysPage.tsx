@@ -3,7 +3,6 @@ import { Thumbnail } from '../components/Diagram'
 import { PendingDraft } from '../components/DraftNotice'
 import { Icon } from '../components/Icon'
 import { byName, Chips, Header, normalize, useFeedback } from '../components/ui'
-import { useBoard, Whiteboard } from '../components/Whiteboard'
 import { useStore } from '../data/store'
 import { draftKey } from '../lib/drafts'
 import { playScene } from '../lib/engine'
@@ -14,7 +13,6 @@ export function PlaysPage() {
   const { toast } = useFeedback()
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('')
-  const board = useBoard()
 
   const categories = [...new Set(plays.map((p) => p.category))].sort()
   const active = categories.includes(category) ? category : ''
@@ -33,10 +31,7 @@ export function PlaysPage() {
 
   return (
     <>
-      <Header title="Systèmes">
-        <button className="button accent" onClick={board.show}>Ardoise</button>
-      </Header>
-      {board.open && <Whiteboard onClose={board.hide} />}
+      <Header title="Systèmes" />
       <main>
         <PendingDraft table="plays" draftKey={draftKey('plays')} href="/systemes/nouveau" />
         {plays.length === 0 ? (
@@ -57,6 +52,7 @@ export function PlaysPage() {
                     <Thumbnail scene={playScene(play)} defense={play.defense} />
                     <strong>{play.name}</strong>
                     <span>{play.category} · {play.steps.length} temps</span>
+                    {play.teams?.length ? <span className="shared">Partagé : {play.teams.join(', ')}</span> : null}
                   </a>
                 </li>
               ))}

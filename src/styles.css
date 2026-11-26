@@ -90,10 +90,10 @@ div.card { display: flex; flex-direction: column; align-items: flex-start; gap: 
 .grid li { display: flex; }
 .play-card { display: flex; flex-direction: column; gap: 4px; width: 100%; padding: 8px; }
 .play-card .court { aspect-ratio: 1; margin-bottom: 4px; }
-.play-card span, .match-card span, small { font-size: 0.8rem; color: var(--muted); }
-.match-card { display: flex; flex-direction: column; gap: 4px; border-left: 6px solid var(--blue); }
-.match-card .match-date { color: var(--blue); font-weight: 600; }
-.match-card .match-date::first-letter { text-transform: uppercase; }
+.play-card span, .session-card span, small { font-size: 0.8rem; color: var(--muted); }
+.session-card { display: flex; flex-direction: column; gap: 4px; border-left: 6px solid var(--blue); }
+.card .session-date { display: block; font-size: 0.9rem; color: var(--blue); font-weight: 600; }
+.session-date::first-letter { text-transform: uppercase; }
 .tag { background: var(--blue); color: var(--white); border-radius: 20px; padding: 3px 10px; font-size: 0.8rem; }
 .pre { white-space: pre-wrap; }
 .muted { color: var(--muted); font-size: 0.9rem; }
@@ -173,7 +173,7 @@ legend { font-size: 0.85rem; font-weight: 600; color: var(--muted); margin-botto
 .stage { display: flex; flex-direction: column; gap: 8px; padding-top: 8px; height: calc(100svh - 70px - env(safe-area-inset-top)); min-height: 460px; }
 .stage.previewing { height: auto; }
 .stage-court { flex: 1; min-height: 0; display: flex; justify-content: center; align-items: center; container-type: size; }
-.stage-court .court, .board-court .court { height: auto; }
+.stage-court .court { height: auto; }
 .stage-court .court-half { width: min(100cqw, calc(100cqh * 164 / 154)); }
 .stage-court .court-full { width: min(100cqw, calc(100cqh * 164 / 294)); }
 .dock { display: flex; flex-direction: column; gap: 6px; padding-bottom: max(8px, env(safe-area-inset-bottom)); }
@@ -197,11 +197,8 @@ legend { font-size: 0.85rem; font-weight: 600; color: var(--muted); margin-botto
 .pick { flex-direction: row; align-items: center; gap: 10px; background: var(--background); border-radius: 10px; padding: 8px; color: var(--text); }
 .pick .court, .entry-head .court { width: 58px; height: 58px; flex: none; }
 .pick span, .entry-head span { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-.entry { display: flex; flex-direction: column; gap: 8px; border: 2px solid transparent; }
-.entry.key { border-color: var(--yellow); background: #fffde0; }
+.entry { display: flex; flex-direction: column; gap: 8px; }
 .entry-head { display: flex; align-items: center; gap: 10px; }
-.star { color: var(--muted); }
-.star[aria-pressed='true'] { color: #d9a400; }
 .entry-actions { display: flex; justify-content: flex-end; align-items: center; gap: 4px; }
 .entry-actions .see { margin-right: auto; }
 .entry-number { display: grid; place-items: center; width: 58px; height: 58px; flex: none; border-radius: 10px; background: var(--blue); color: var(--yellow); font: 700 1.4rem var(--display); }
@@ -239,36 +236,25 @@ legend { font-size: 0.85rem; font-weight: 600; color: var(--muted); margin-botto
 .login .logo { height: 110px; }
 .login .card { width: 100%; max-width: 360px; color: var(--text); }
 .login .button.primary { border-color: var(--yellow); }
+.login .button.ghost { color: var(--text); }
 
-.match-mode { min-height: 100dvh; background: var(--blue-dark); color: var(--white); }
-.match-mode main { padding-bottom: 30px; }
-.match-mode .chips { padding: 10px 14px 0; max-width: 640px; margin: 0 auto; }
-.match-mode .chip { color: var(--text); min-height: 46px; }
-.match-mode .chip.key { border-color: var(--yellow); }
-.match-mode .chip.active { background: var(--yellow); color: var(--blue-dark); }
-.match-mode .card, .match-mode .step-note { color: var(--text); }
-.match-mode details summary { font-weight: 700; cursor: pointer; }
-.match-mode details p { margin-top: 8px; }
-.instruction { background: var(--yellow); color: var(--blue-dark); border-radius: 10px; padding: 10px 14px; font-weight: 700; }
+/* Partage aux joueurs */
+.chips.wrap { flex-wrap: wrap; }
+.code { font: 700 1.6rem ui-monospace, 'Cascadia Mono', Consolas, monospace; letter-spacing: 0.08em; color: var(--blue); user-select: all; }
+.actions { width: 100%; }
+.link { color: var(--blue); font-weight: 600; text-decoration: underline; }
+.shared { color: #1e7d46 !important; font-weight: 600; }
+.warning-box { background: #fffbd1; border: 2px solid var(--yellow); border-radius: 10px; padding: 10px 12px; font-size: 0.9rem; }
+.accounts { list-style: none; width: 100%; margin: 12px 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.account { display: flex; align-items: center; gap: 8px; }
+.account span { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.account small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account select { width: auto; max-width: 40%; flex: none; }
 
 /* Placements de départ */
 .sheet-body { display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
 .formations button { display: flex; flex-direction: column; gap: 3px; width: 100%; padding: 8px; text-align: left; background: var(--background); border: 2px solid var(--border); border-radius: 12px; }
 .formations strong { font-size: 0.9rem; }
-
-/* Ardoise de temps mort */
-.board { position: fixed; inset: 0; z-index: 15; display: flex; flex-direction: column; background: var(--blue-dark); color: var(--white); }
-.board .header h1 { font-size: 1.2rem; }
-.board-court { flex: 1; min-height: 0; display: flex; justify-content: center; align-items: center; container-type: size; margin: 8px 12px; }
-.board-court .court-half { width: min(100cqw, calc(100cqh * 164 / 154)); }
-.board-court .court-full { width: min(100cqw, calc(100cqh * 164 / 294)); }
-.board-tools { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 640px; margin: 0 auto; padding: 0 12px max(10px, env(safe-area-inset-bottom)); color: var(--text); }
-.board-tools .button { line-height: 1.15; padding-inline: 6px; }
-.swatches { display: flex; align-items: center; gap: 10px; }
-.swatches > button:not(.button) { width: 40px; height: 40px; flex: none; border-radius: 50%; border: 3px solid transparent; box-shadow: 0 0 0 2px rgb(255 255 255 / 35%); }
-.swatches > button.active { border-color: var(--blue-dark); box-shadow: 0 0 0 3px var(--yellow); }
-.swatches .button { margin-left: auto; }
-.stroke { fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 
 @media (prefers-reduced-motion: no-preference) {
   .button, .chip, .toolbar button { transition: background-color 0.15s, border-color 0.15s; }

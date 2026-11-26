@@ -1,17 +1,19 @@
 import { useEffect, useState } from 'react'
 import { Icon } from './components/Icon'
-import { FeedbackProvider } from './components/ui'
+import { FeedbackProvider, NotFound } from './components/ui'
+import { forgetAccess } from './data/access'
 import { clearCache, supabase } from './data/cloudRepo'
 import { StoreProvider, useStore } from './data/store'
 import { clearDrafts } from './lib/drafts'
-import { useRoute } from './lib/router'
+import { navigate, releaseGuard, useRoute } from './lib/router'
+import { playerContent } from './lib/sharing'
+import { AuthPage } from './pages/AuthPage'
 import { EditorPage } from './pages/EditorPage'
-import { LoginPage } from './pages/LoginPage'
-import { MatchesPage } from './pages/MatchesPage'
-import { MatchModePage } from './pages/MatchModePage'
-import { MatchPage } from './pages/MatchPage'
+import { Member } from './pages/Member'
 import { PlayPage } from './pages/PlayPage'
+import { PlayersPage } from './pages/PlayersPage'
 import { PlaysPage } from './pages/PlaysPage'
+import { PlayerView } from './pages/player/PlayerView'
 import { SettingsPage } from './pages/SettingsPage'
 import { DrillEditorPage } from './pages/training/DrillEditorPage'
 import { DrillPage } from './pages/training/DrillPage'
@@ -23,7 +25,7 @@ import { SessionsPage } from './pages/training/SessionsPage'
 const TABS = [
   { path: 'systemes', label: 'Systèmes', icon: 'playbook' },
   { path: 'entrainement', label: 'Entraînement', icon: 'whistle' },
-  { path: 'matchs', label: 'Matchs', icon: 'calendar' },
+  { path: 'joueurs', label: 'Joueurs', icon: 'share' },
   { path: 'reglages', label: 'Réglages', icon: 'settings' },
 ] as const
 
@@ -37,6 +39,23 @@ function Training({ path }: { path: string[] }) {
     return sub === 'modifier' ? <DrillEditorPage key={id} id={id} /> : <DrillPage key={id} id={id} />
   }
   return <SessionsPage />
+}
+
+/** Ce que verront les joueurs d'une équipe, calculé à partir des données du coach. */
+function Preview({ path }: { path: string[] }) {
+  const store = useStore()
+  const [id, ...rest] = path
+  const team = store.teams.find((t) => t.id === id)
+  if (!team) return <NotFound back="/joueurs" text="Cette équipe n’a plus d’accès." />
+  return (
+    <PlayerView
+      content={playerContent(store, team.name)}
+      base={`/apercu/${team.id}`}
+      path={rest}
+      back="/joueurs"
+      banner={<p className="warning-box">Aperçu : voici ce que voient les joueurs {team.name}.</p>}
+    />
+  )
 }
 
 function Screens({ email }: { email?: string }) {
@@ -55,22 +74,23 @@ function Screens({ email }: { email?: string }) {
     )
   }
 
-  // pas de barre d'onglets pendant le dessin ni en mode match
+  if (section === 'apercu') return <Preview path={path} />
+
+  // pas de barre d'onglets pendant le dessin
   const drawing =
     (section === 'systemes' && (id === 'nouveau' || sub === 'modifier')) ||
     (section === 'entrainement' && id === 'exercice' && (sub === 'nouveau' || path[2] === 'modifier'))
-  const focused = drawing || sub === 'direct'
+  // après connexion, ou sur une ancienne adresse, on revient aux systèmes
+  const current = TABS.some((t) => t.path === section) ? section : 'systemes'
 
   return (
     <>
       {offline && <p className="offline">Hors ligne : dernières données enregistrées sur ce téléphone.</p>}
-      {section === 'matchs' ? (
-        !id ? <MatchesPage />
-        : sub === 'direct' ? <MatchModePage key={id} id={id} />
-        : <MatchPage key={id} id={id === 'nouveau' ? undefined : id} />
-      ) : section === 'entrainement' ? (
+      {current === 'entrainement' ? (
         <Training path={path} />
-      ) : section === 'reglages' ? (
+      ) : current === 'joueurs' ? (
+        <PlayersPage />
+      ) : current === 'reglages' ? (
         <SettingsPage email={email} />
       ) : id === 'nouveau' ? (
         <EditorPage key="new" />
@@ -81,10 +101,10 @@ function Screens({ email }: { email?: string }) {
       ) : (
         <PlaysPage />
       )}
-      {!focused && (
+      {!drawing && (
         <nav className="tabs">
           {TABS.map((tab) => (
-            <a key={tab.path} href={`#/${tab.path}`} className={tab.path === section ? 'active' : ''}>
+            <a key={tab.path} href={`#/${tab.path}`} className={tab.path === current ? 'active' : ''}>
               <Icon name={tab.icon} />
               {tab.label}
             </a>
@@ -125,6 +145,10 @@ function useUser() {
         localStorage.removeItem(USER)
         clearCache()
         clearDrafts()
+        forgetAccess()
+        // le compte suivant ne doit pas arriver sur la page du précédent
+        releaseGuard()
+        navigate('/', { replace: true })
         setUser(null)
       }
     })
@@ -135,16 +159,23 @@ function useUser() {
 }
 
 export function App() {
+  const [section = '', ...path] = useRoute()
   const user = useUser()
 
   if (supabase && user === undefined) return <p className="splash">Chargement…</p>
-  if (supabase && !user) return <LoginPage />
+  if (supabase && !user) return <AuthPage />
 
-  return (
+  const coach = (
     <FeedbackProvider>
       <StoreProvider key={user?.id ?? 'local'}>
         <Screens email={user?.email} />
       </StoreProvider>
     </FeedbackProvider>
+  )
+  // sans serveur il n'y a pas de comptes : l'application reste sur l'appareil
+  if (!user) return coach
+
+  return (
+    <Member key={user.id} userId={user.id} email={user.email} path={section === 'joueur' ? path : []} coach={coach} />
   )
 }

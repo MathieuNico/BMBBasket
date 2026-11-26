@@ -19,8 +19,8 @@ function SessionList({ title, sessions }: { title: string; sessions: Session[] }
           const present = marked.filter((m) => s.attendance[m.id] === 'present').length
           return (
             <li key={s.id}>
-              <a className="card match-card" href={`#/entrainement/seance/${s.id}`}>
-                <span className="match-date">
+              <a className="card session-card" href={`#/entrainement/seance/${s.id}`}>
+                <span className="session-date">
                   {formatDate(s.date)}{s.time && ` · ${clock(s.time, 0)}`}
                 </span>
                 <strong>{[s.team, s.title].filter(Boolean).join(' · ')}</strong>
@@ -28,6 +28,7 @@ function SessionList({ title, sessions }: { title: string; sessions: Session[] }
                   {s.items.length} élément{s.items.length > 1 ? 's' : ''} · {totalDuration(s.items)} min
                   {marked.length > 0 && ` · ${present}/${roster.length} présents`}
                 </span>
+                {s.published && <span className="shared">Visible par les joueurs</span>}
               </a>
             </li>
           )

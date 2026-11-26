@@ -28,12 +28,12 @@ export function EditorPage({ id }: { id?: string }) {
 function Editor({ initial, isNew }: { initial: Play; isNew: boolean }) {
   const { plays, save } = useStore()
   const { toast } = useFeedback()
-  const savedAt = plays.find((p) => p.id === initial.id)?.updatedAt
+  const stored = plays.find((p) => p.id === initial.id)
   const { history, restored, outdated, forget } = useDrawingDraft(
     'plays',
     draftKey('plays', isNew ? undefined : initial.id),
     initial,
-    isNew ? '' : (savedAt ?? ''),
+    isNew ? '' : (stored?.updatedAt ?? ''),
   )
   const [picking, setPicking] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -46,7 +46,8 @@ function Editor({ initial, isNew }: { initial: Play; isNew: boolean }) {
     if (!name) return toast('Donne un nom au système avant de l’enregistrer.')
     setSaving(true)
     try {
-      await save('plays', { ...play, name })
+      // le partage se règle sur la page du système : un vieux brouillon ne doit pas le modifier
+      await save('plays', { ...play, name, teams: stored?.teams ?? [] })
       forget()
       releaseGuard()
       navigate(`/systemes/${play.id}`, { replace: true })

@@ -4,6 +4,7 @@ import { actionLine, COURT, frameAt, isInvalid, marking, newPlay, newStep, nextP
 import { applyAttack, applyDefense, ATTACKS, DEFENSES } from './formations'
 import { length, pointAt, simplify, trim } from './geometry'
 import { parseBackup } from './backup'
+import { cleanCode, isCode, newCode, playerContent, showCode } from './sharing'
 import { attendanceOf, clock, copySession, itemFor, newDrill, newSession } from './training'
 import type { Drill, Play } from './types'
 
@@ -180,6 +181,48 @@ describe('brouillons', () => {
   })
 })
 
+describe('partage aux joueurs', () => {
+  const session = (team: string, published: boolean, drill: Drill) => ({
+    ...newSession('2026-12-01', team),
+    published,
+    items: [itemFor(drill)],
+    notes: 'secret',
+    attendance: { a: 'absent' as const },
+  })
+  const shown = twoBalls()
+  const hidden = twoBalls()
+  const data = {
+    plays: [{ ...pickAndRoll(), teams: ['U15F'] }, { ...pickAndRoll(), teams: ['U13M'] }, pickAndRoll()],
+    drills: [shown, hidden],
+    sessions: [session('u15f ', true, shown), session('U15F', false, hidden), session('U13M', true, hidden)],
+    members: [{ id: 'm', name: 'Prénom N.', team: 'U15F', updatedAt: '' }],
+    teams: [],
+  }
+
+  it('ne montre à une équipe que ce qui est publié pour elle', () => {
+    const content = playerContent(data, 'U15F')
+    expect(content.plays.map((p) => p.id)).toEqual([data.plays[0].id])
+    expect(content.sessions.map((s) => s.id)).toEqual([data.sessions[0].id])
+    expect(content.drills).toEqual([shown])
+  })
+
+  it('retire les notes, les présences et la liste des équipes', () => {
+    const content = playerContent(data, 'U15F')
+    expect(content.sessions[0].notes).toBe('')
+    expect(content.sessions[0].attendance).toEqual({})
+    expect(content.plays[0].teams).toBeUndefined()
+    expect(JSON.stringify(content)).not.toMatch(/secret|absent|Prénom/)
+  })
+
+  it('génère des codes lisibles et relit une saisie approximative', () => {
+    const code = newCode()
+    expect(code).toMatch(/^[A-HJ-NP-Z2-9]{10}$/)
+    expect(cleanCode(' ' + showCode(code).toLowerCase() + ' ')).toBe(code)
+    expect(isCode(code)).toBe(true)
+    expect(isCode('ABC')).toBe(false)
+  })
+})
+
 describe('géométrie', () => {
   const line = [{ x: 0, y: 0 }, { x: 10, y: 0.1 }, { x: 20, y: 0 }]
   it('simplifie un tracé presque droit', () => expect(simplify(line, 1)).toHaveLength(2))
@@ -191,21 +234,22 @@ describe('sauvegarde', () => {
   it('relit un export complet', () => {
     const data = {
       plays: [pickAndRoll()],
-      matches: [],
       drills: [twoBalls()],
       sessions: [newSession('2026-12-01', 'U15F')],
       members: [],
+      teams: [{ id: '33333333-3333-4333-8333-333333333333', name: 'U15F', updatedAt: '' }],
     }
     expect(parseBackup(JSON.stringify(data))).toEqual(data)
   })
   it('accepte une ancienne sauvegarde sans entraînement', () => {
-    expect(parseBackup(JSON.stringify({ plays: [pickAndRoll()], matches: [] })).drills).toEqual([])
+    // les matchs d'une ancienne sauvegarde sont ignorés
+    expect(parseBackup(JSON.stringify({ plays: [pickAndRoll()], matches: [{}] })).drills).toEqual([])
   })
   it('refuse un fichier abîmé', () => {
-    expect(() => parseBackup('{"plays":[{"id":"x"}],"matches":[]}')).toThrow()
+    expect(() => parseBackup('{"plays":[{"id":"x"}]}')).toThrow()
     expect(() => parseBackup('bonjour')).toThrow()
     const orphan = removePlayer(twoBalls(), 'C1')
     const drill = { ...twoBalls(), start: orphan.start }
-    expect(() => parseBackup(JSON.stringify({ plays: [], matches: [], drills: [drill] }))).toThrow()
+    expect(() => parseBackup(JSON.stringify({ plays: [], drills: [drill] }))).toThrow()
   })
 })
