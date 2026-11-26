@@ -1,0 +1,96 @@
+import { useCallback, useState } from 'react'
+import { CourtChoice, DrawingEditor } from '../components/DrawingEditor'
+import { Header, NotFound, useFeedback } from '../components/ui'
+import { useStore } from '../data/store'
+import { newPlay, playScene } from '../lib/engine'
+import { navigate, releaseGuard, useLeaveGuard } from '../lib/router'
+import { CATEGORIES, type Play, type Scene } from '../lib/types'
+import { useHistory } from '../lib/useHistory'
+
+/** Traduit une modification du dessin vers le format d'un système. */
+function toPlay({ balls, cones: _, start, ...changes }: Partial<Scene>): Partial<Play> {
+  return {
+    ...changes,
+    ...(start && { start: start as Play['start'] }),
+    ...(balls && { ball: balls[0] ?? null }),
+  }
+}
+
+export function EditorPage({ id }: { id?: string }) {
+  const { plays } = useStore()
+  const [initial] = useState<Play | undefined>(() => (id ? plays.find((p) => p.id === id) : newPlay()))
+  return initial ? <Editor initial={initial} isNew={!id} /> : <NotFound back="/systemes" text="Ce système n’existe plus." />
+}
+
+function Editor({ initial, isNew }: { initial: Play; isNew: boolean }) {
+  const { save } = useStore()
+  const { confirm, toast } = useFeedback()
+  const history = useHistory(() => initial)
+  const [saving, setSaving] = useState(false)
+
+  const askLeave = useCallback(() => confirm('Quitter sans enregistrer les modifications ?', 'Quitter'), [confirm])
+  useLeaveGuard(history.dirty, askLeave)
+
+  const play = history.value
+  const scene = playScene(play)
+
+  const submit = async () => {
+    const name = play.name.trim()
+    if (!name) return toast('Donne un nom au système avant de l’enregistrer.')
+    setSaving(true)
+    try {
+      await save('plays', { ...play, name })
+      releaseGuard()
+      navigate(`/systemes/${play.id}`, { replace: true })
+    } catch (e) {
+      toast((e as Error).message)
+      setSaving(false)
+    }
+  }
+
+  return (
+    <>
+      <Header title={isNew ? 'Création' : 'Modifier'} back={isNew ? '/systemes' : `/systemes/${play.id}`}>
+        <button className="button accent" onClick={submit} disabled={saving}>Enregistrer</button>
+      </Header>
+      <main className="editor">
+        <input
+          className="name-input"
+          placeholder="Nom du système"
+          aria-label="Nom du système"
+          value={play.name}
+          onChange={(e) => history.patch({ name: e.target.value })}
+          maxLength={80}
+        />
+
+        <DrawingEditor
+          scene={scene}
+          defense={play.defense}
+          initialTool={isNew ? 'move' : 'cut'}
+          history={history}
+          onCommit={(changes) => history.commit(toPlay(changes))}
+          onPatch={(changes) => history.patch(toPlay(changes))}
+        />
+
+        <section className="card form">
+          <h2>Le système</h2>
+          <label>
+            Catégorie
+            <select value={play.category} onChange={(e) => history.commit({ category: e.target.value })}>
+              {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
+            </select>
+          </label>
+          <CourtChoice scene={scene} onChange={(court) => history.commit({ court })} />
+          <label className="switch">
+            <input type="checkbox" checked={play.defense} onChange={(e) => history.commit({ defense: e.target.checked })} />
+            Afficher les défenseurs
+          </label>
+          <label>
+            Description
+            <textarea rows={3} value={play.description} placeholder="Quand l’utiliser, ce qu’on cherche…" onChange={(e) => history.patch({ description: e.target.value })} />
+          </label>
+        </section>
+      </main>
+    </>
+  )
+}
