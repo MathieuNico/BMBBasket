@@ -14,12 +14,14 @@ import { clock, copySession, hasDiagram, itemFor, newSession, sameTeam, totalDur
 import type { Drill, Session, SessionItem } from '../../lib/types'
 import { useDraft } from '../../lib/useDraft'
 import { Attendance } from './Attendance'
+import { SessionConsultation } from './SessionConsultation'
 import { DrillDetails } from './DrillPage'
 
 export function SessionPage({ id }: { id?: string }) {
-  const { sessions } = useStore()
+  const { sessions, canEdit } = useStore()
   const stored = sessions.find((s) => s.id === id)
   const [initial] = useState(() => (id ? stored : newSession(today())))
+  if (stored && !canEdit(stored)) return <SessionConsultation session={stored} />
   return initial ? (
     <SessionForm initial={initial} stored={stored} isNew={!id} />
   ) : (
@@ -97,7 +99,7 @@ function Item({ item, drill, number, start, first, last, onChange, onMove, onRem
 }
 
 function SessionForm({ initial, stored, isNew }: { initial: Session; stored?: Session; isNew: boolean }) {
-  const { drills, teams, save, remove } = useStore()
+  const { drills, teams, save, remove, authorOf } = useStore()
   const { confirm, toast } = useFeedback()
   const { draft: session, dirty, patch, markSaved } = useDraft(() => initial, stored)
   const [part, setPart] = useState<'plan' | 'attendance'>('plan')
@@ -277,7 +279,7 @@ function SessionForm({ initial, stored, isNew }: { initial: Session; stored?: Se
       {picking && (
         <Picker
           title="Ajouter des exercices"
-          choices={drills.map((d) => ({ id: d.id, name: d.name, detail: `${d.theme} · ${d.duration} min`, scene: d }))}
+          choices={drills.map((d) => ({ id: d.id, name: d.name, detail: `${d.theme} · ${d.duration} min`, scene: d, author: authorOf(d) }))}
           chosen={[]}
           empty="Ta bibliothèque est vide : utilise « Nouvel exercice »."
           onClose={(ids) => {

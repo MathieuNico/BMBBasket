@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { RestoredNotice } from '../../components/DraftNotice'
 import { CourtChoice, DrawingEditor } from '../../components/DrawingEditor'
-import { Header, NotFound, useFeedback } from '../../components/ui'
+import { Header, NotFound, Redirect, useFeedback } from '../../components/ui'
 import { useStore } from '../../data/store'
 import { draftKey } from '../../lib/drafts'
 import { navigate, releaseGuard } from '../../lib/router'
@@ -16,8 +16,9 @@ interface Props {
 }
 
 export function DrillEditorPage({ id, sessionId }: Props) {
-  const { drills } = useStore()
+  const { drills, canEdit } = useStore()
   const [initial] = useState<Drill | undefined>(() => (id ? drills.find((d) => d.id === id) : newDrill()))
+  if (id && initial && !canEdit(initial)) return <Redirect to={`/entrainement/exercice/${id}`} />
   return initial ? (
     <Editor initial={initial} isNew={!id} sessionId={sessionId} />
   ) : (

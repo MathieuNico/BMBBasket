@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
+import { navigate } from '../lib/router'
 import { Icon, type IconName } from './Icon'
 
 /** Logo du club : dépose le fichier public/logo.png pour remplacer l'écusson par défaut. */
@@ -67,6 +68,12 @@ export function Search({ value, onChange, label }: { value: string; onChange(val
       <input type="search" placeholder={label} aria-label={label} value={value} onChange={(e) => onChange(e.target.value)} />
     </div>
   )
+}
+
+/** Renvoie vers une autre page. */
+export function Redirect({ to }: { to: string }) {
+  useEffect(() => navigate(to, { replace: true }), [to])
+  return null
 }
 
 export function NotFound({ back, text }: { back: string; text: string }) {

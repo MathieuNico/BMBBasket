@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { RestoredNotice } from '../components/DraftNotice'
 import { CourtChoice, DrawingEditor } from '../components/DrawingEditor'
 import { FormationSheet } from '../components/FormationSheet'
-import { Header, NotFound, useFeedback } from '../components/ui'
+import { Header, NotFound, Redirect, useFeedback } from '../components/ui'
 import { useStore } from '../data/store'
 import { draftKey } from '../lib/drafts'
 import { newPlay, playScene } from '../lib/engine'
@@ -20,8 +20,9 @@ function toPlay({ balls, cones: _, start, ...changes }: Partial<Scene>): Partial
 }
 
 export function EditorPage({ id }: { id?: string }) {
-  const { plays } = useStore()
+  const { plays, canEdit } = useStore()
   const [initial] = useState<Play | undefined>(() => (id ? plays.find((p) => p.id === id) : newPlay()))
+  if (id && initial && !canEdit(initial)) return <Redirect to={`/systemes/${id}`} />
   return initial ? <Editor initial={initial} isNew={!id} /> : <NotFound back="/systemes" text="Ce système n’existe plus." />
 }
 

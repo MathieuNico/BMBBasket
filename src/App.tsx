@@ -163,7 +163,7 @@ export function App() {
 
   const coach = (
     <FeedbackProvider>
-      <StoreProvider key={user?.id ?? 'local'}>
+      <StoreProvider key={user?.id ?? 'local'} userId={user?.id}>
         <Screens email={user?.email} />
       </StoreProvider>
     </FeedbackProvider>

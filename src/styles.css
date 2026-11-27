@@ -246,6 +246,20 @@ input:not([type='checkbox']).team-input { margin-top: 10px; }
 .chip.active { background: var(--navy); border-color: var(--navy); color: #fff; }
 .chip.dashed { border-style: dashed; }
 
+/* ── Auteurs ── */
+.owners { display: flex; gap: 4px; overflow-x: auto; padding: 4px; background: #e9edf4; border-radius: var(--radius-s); scrollbar-width: none; }
+.owners button { display: flex; flex: 1 0 auto; align-items: center; justify-content: center; gap: 6px; min-height: 42px; padding: 6px 14px; border: 0; border-radius: 9px; background: none; font-weight: 700; font-size: 0.875rem; color: var(--muted); }
+.owners small { padding: 1px 7px; border-radius: 10px; background: rgb(17 26 46 / 7%); font-size: 0.7rem; }
+.owners button.active { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgb(17 26 46 / 12%); }
+.owners button.active small { background: var(--primary-soft); color: var(--primary-strong); }
+.badge.author, .play-card > .badge.author { background: var(--accent-soft); color: #6b4c00; }
+.readonly { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px; background: var(--accent-soft); border-radius: var(--radius); }
+.readonly .tile-icon { background: var(--surface); color: #8a6100; }
+.readonly p { display: flex; flex-direction: column; flex: 1; min-width: 150px; }
+.readonly small { color: #5c4200; }
+.readonly .button { width: 100%; }
+.coach-link { display: flex; align-items: center; gap: 14px; width: 100%; padding: 12px 14px; text-align: left; }
+
 /* ── Terrain et schémas ── */
 .court { display: block; width: 100%; height: auto; border-radius: 14px; border: 1px solid #e8dcc6; user-select: none; }
 .player-view > .court { max-height: max(300px, calc(100dvh - 330px)); border: 0; }

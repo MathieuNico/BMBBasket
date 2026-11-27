@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { draftKey, readDraft, writeDraft } from './drafts'
 import { actionLine, COURT, frameAt, isInvalid, marking, newPlay, newStep, nextPlayerId, playScene, removePlayer, stateAt } from './engine'
 import { applyAttack, applyDefense, ATTACKS, DEFENSES } from './formations'
+import { canEdit, coachName, isMine, needsName } from './owners'
 import { length, pointAt, simplify, trim } from './geometry'
 import { parseBackup } from './backup'
 import { cleanCode, isCode, newCode, playerContent, showCode } from './sharing'
@@ -220,6 +221,28 @@ describe('partage aux joueurs', () => {
     expect(cleanCode(' ' + showCode(code).toLowerCase() + ' ')).toBe(code)
     expect(isCode(code)).toBe(true)
     expect(isCode('ABC')).toBe(false)
+  })
+})
+
+describe('auteurs', () => {
+  const coaches = [{ id: 'moi', name: 'Moi' }, { id: 'julie', name: ' ' }]
+
+  it('réserve la modification à l’auteur', () => {
+    expect(canEdit({ ownerId: 'moi' }, 'moi', coaches)).toBe(true)
+    expect(canEdit({ ownerId: 'julie' }, 'moi', coaches)).toBe(false)
+  })
+
+  it('laisse modifiable ce qui n’a plus d’auteur, ou sans serveur', () => {
+    expect(canEdit({ ownerId: 'parti' }, 'moi', coaches)).toBe(true)
+    expect(canEdit({}, 'moi', coaches)).toBe(true)
+    expect(canEdit({ ownerId: 'julie' }, undefined, [])).toBe(true)
+    expect(isMine({ ownerId: 'parti' }, 'moi')).toBe(false)
+  })
+
+  it('invite à choisir un nom', () => {
+    expect(needsName({ id: 'a', name: 'Coach' })).toBe(true)
+    expect(needsName(coaches[0])).toBe(false)
+    expect(coachName(coaches[1])).toBe('Coach sans nom')
   })
 })
 

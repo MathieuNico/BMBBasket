@@ -66,6 +66,8 @@ export interface Play {
   steps: Step[]
   /** Équipes dont les joueurs peuvent consulter ce système. Absent ou vide : réservé aux coachs. */
   teams?: string[]
+  /** Coach auteur, fixé par le serveur. Absent sans serveur. */
+  ownerId?: string
   updatedAt: string
 }
 
@@ -93,6 +95,8 @@ export interface Drill extends Scene {
   description: string
   variants: string
   material: string
+  /** Coach auteur, fixé par le serveur. Absent sans serveur. */
+  ownerId?: string
   updatedAt: string
 }
 
@@ -122,6 +126,8 @@ export interface Session {
   attendance: Record<string, Presence>
   /** Visible par les joueurs de l'équipe. */
   published?: boolean
+  /** Coach auteur, fixé par le serveur. Absent sans serveur. */
+  ownerId?: string
   updatedAt: string
 }
 

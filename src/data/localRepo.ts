@@ -25,7 +25,7 @@ export const localRepo: Repo = {
   async load() {
     const data = emptyData()
     for (const table of TABLES) data[table] = read(table)
-    return { data, offline: false }
+    return { data, coaches: [], offline: false }
   },
   async save(table, item) {
     const items = read(table)
@@ -37,4 +37,6 @@ export const localRepo: Repo = {
   async remove(table, id) {
     write(table, read(table).filter((x) => x.id !== id))
   },
+  // sans serveur il n'y a pas de comptes
+  async renameCoach() {},
 }

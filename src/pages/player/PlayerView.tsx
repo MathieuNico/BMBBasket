@@ -1,15 +1,14 @@
 import { useState, type ReactNode } from 'react'
-import { Thumbnail } from '../../components/Diagram'
 import { Nav, type NavItem } from '../../components/Nav'
 import { PlayCard } from '../../components/PlayCard'
 import { PlayPlayer } from '../../components/PlayPlayer'
 import { NextSession, SessionCard, when } from '../../components/SessionCard'
+import { SessionItemCard } from '../../components/SessionItemCard'
 import { byDate, byName, Chips, EmptyState, Header, NotFound, normalize, Search } from '../../components/ui'
 import { playScene } from '../../lib/engine'
 import type { PlayerContent } from '../../lib/sharing'
-import { clock, hasDiagram, totalDuration } from '../../lib/training'
-import type { Drill, Session, SessionItem } from '../../lib/types'
-import { DrillDetails } from '../training/DrillPage'
+import { clock, totalDuration } from '../../lib/training'
+import type { Session } from '../../lib/types'
 
 interface Props {
   content: PlayerContent
@@ -40,34 +39,6 @@ function SessionLinks({ heading, sessions, base }: { heading: string; sessions: 
   )
 }
 
-function Item({ item, drill, start }: { item: SessionItem; drill?: Drill; start: string }) {
-  const [open, setOpen] = useState(false)
-  const name = drill?.name ?? item.title
-  return (
-    <li className="card entry">
-      <div className="entry-head">
-        {drill && hasDiagram(drill) && <Thumbnail scene={drill} />}
-        <span>
-          <strong>{name || 'Temps libre'}</strong>
-          <small>{[start, `${item.duration} min`, drill?.theme].filter(Boolean).join(' · ')}</small>
-        </span>
-      </div>
-      {item.note && <p className="step-note pre">{item.note}</p>}
-      {drill && (
-        <button className="button soft small" aria-expanded={open} onClick={() => setOpen(!open)}>
-          {open ? 'Masquer' : 'Voir l’exercice'}
-        </button>
-      )}
-      {open && drill && (
-        <div className="entry-detail">
-          {hasDiagram(drill) && <PlayPlayer scene={drill} />}
-          <DrillDetails drill={drill} />
-        </div>
-      )}
-    </li>
-  )
-}
-
 function SessionView({ session, content, base }: { session: Session; content: PlayerContent; base: string }) {
   return (
     <>
@@ -81,7 +52,7 @@ function SessionView({ session, content, base }: { session: Session; content: Pl
         )}
         <ol className="list">
           {session.items.map((item, i) => (
-            <Item
+            <SessionItemCard
               key={item.id}
               item={item}
               drill={content.drills.find((d) => d.id === item.drillId)}

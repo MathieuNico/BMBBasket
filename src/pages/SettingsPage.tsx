@@ -1,8 +1,10 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react'
+import { CoachName } from '../components/CoachName'
 import { Header, today, useFeedback } from '../components/ui'
 import { supabase } from '../data/cloudRepo'
 import { isCloud, useStore } from '../data/store'
 import { parseBackup } from '../lib/backup'
+import { OWNED_TABLES } from '../lib/owners'
 import { TABLES, type Data } from '../lib/types'
 
 function Account({ email }: { email: string }) {
@@ -20,7 +22,9 @@ function Account({ email }: { email: string }) {
   return (
     <section className="card form">
       <h2>Mon compte</h2>
-      <p>{email}</p>
+      <p className="muted">{email}</p>
+      <h3>Nom visible par les autres coachs</h3>
+      <CoachName />
       <form onSubmit={change}>
         <label>
           Nouveau mot de passe
@@ -60,6 +64,9 @@ export function SettingsPage({ email }: { email?: string }) {
     if (!file) return
     try {
       const backup = parseBackup(await file.text())
+      // ce qui appartient à un autre coach n'est jamais remplacé
+      const locked = new Set(OWNED_TABLES.flatMap((t) => data[t].filter((x) => !store.canEdit(x)).map((x) => x.id)))
+      for (const table of TABLES) backup[table] = (backup[table] as { id: string }[]).filter((x) => !locked.has(x.id)) as never
       const existing = new Set(TABLES.flatMap((t) => data[t].map((x) => x.id)))
       const replaced = TABLES.flatMap((t) => backup[t].filter((x) => existing.has(x.id))).length
       if (replaced && !(await confirm(`${replaced} élément(s) déjà présent(s) seront remplacés par ceux du fichier.`, 'Remplacer'))) return
