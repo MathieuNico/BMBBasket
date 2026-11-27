@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { InstallCard } from '../components/InstallCard'
 import { Logo } from '../components/ui'
 import { isNetworkError, supabase } from '../data/cloudRepo'
 
@@ -87,6 +88,7 @@ export function AuthPage() {
           <p className="muted">Le code du club te sera demandé ensuite. Moins de 15 ans : demande l’accord d’un parent.</p>
         )}
       </form>
+      <InstallCard />
     </div>
   )
 }

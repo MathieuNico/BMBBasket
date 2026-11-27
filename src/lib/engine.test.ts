@@ -3,6 +3,7 @@ import { draftKey, readDraft, writeDraft } from './drafts'
 import { actionLine, COURT, frameAt, isInvalid, marking, newPlay, newStep, nextPlayerId, playScene, removePlayer, stateAt } from './engine'
 import { applyAttack, applyDefense, ATTACKS, DEFENSES } from './formations'
 import { canEdit, coachName, isMine, needsName } from './owners'
+import { installWay } from './install'
 import { length, pointAt, simplify, trim } from './geometry'
 import { parseBackup } from './backup'
 import { cleanCode, isCode, newCode, playerContent, showCode } from './sharing'
@@ -243,6 +244,29 @@ describe('auteurs', () => {
     expect(needsName({ id: 'a', name: 'Coach' })).toBe(true)
     expect(needsName(coaches[0])).toBe(false)
     expect(coachName(coaches[1])).toBe('Coach sans nom')
+  })
+})
+
+describe('installation', () => {
+  const iphone = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Version/18.0 Mobile Safari/604.1'
+  const mac = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Version/18.0 Safari/605.1.15'
+  const device = { installed: false, prompt: false, userAgent: iphone, touchPoints: 5 }
+
+  it('explique le menu Partager sur iPhone et iPad', () => {
+    expect(installWay(device)).toBe('ios')
+    expect(installWay({ ...device, userAgent: mac })).toBe('ios')
+  })
+
+  it('propose le bouton quand le navigateur sait installer', () => {
+    expect(installWay({ ...device, userAgent: 'Android', prompt: true })).toBe('button')
+  })
+
+  it('renvoie au menu du navigateur dans les autres cas', () => {
+    expect(installWay({ ...device, userAgent: mac, touchPoints: 0 })).toBe('menu')
+  })
+
+  it('ne propose rien une fois installée', () => {
+    expect(installWay({ ...device, installed: true, prompt: true })).toBe('installed')
   })
 })
 

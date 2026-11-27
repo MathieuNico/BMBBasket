@@ -1,5 +1,6 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react'
 import { CoachName } from '../components/CoachName'
+import { InstallCard } from '../components/InstallCard'
 import { Header, today, useFeedback } from '../components/ui'
 import { supabase } from '../data/cloudRepo'
 import { isCloud, useStore } from '../data/store'
@@ -94,6 +95,7 @@ export function SettingsPage({ email }: { email?: string }) {
             </p>
           </section>
         )}
+        <InstallCard permanent />
         <section className="card form">
           <h2>Sauvegarde</h2>
           <p>{summary(data)}</p>

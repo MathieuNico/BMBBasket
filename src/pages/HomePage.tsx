@@ -1,6 +1,7 @@
 import { CoachName } from '../components/CoachName'
 import { PendingDraft } from '../components/DraftNotice'
 import { Icon, type IconName } from '../components/Icon'
+import { InstallCard } from '../components/InstallCard'
 import { showCoach } from '../components/OwnerFilter'
 import { PlayCard } from '../components/PlayCard'
 import { NextSession } from '../components/SessionCard'
@@ -81,6 +82,8 @@ export function HomePage() {
             </li>
           ))}
         </ul>
+
+        <InstallCard />
 
         {done < steps.length && (
           <section className="card">

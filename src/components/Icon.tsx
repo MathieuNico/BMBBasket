@@ -24,6 +24,8 @@ const PATHS = {
   logout: 'M14 4H6v16h8M11 12h9M17 8.500l3.500 3.500-3.500 3.500',
   whistle: 'M9 9h12v4h-5.5a6 6 0 11-9-5.2M9 15a0.5 0.5 0 100 .1M6 3v2M11 3l-1 2',
   calendar: 'M5 6h14v14H5zM5 10.500h14M9 3.500V7M15 3.500V7',
+  install: 'M12 4v11M7.500 10.500L12 15l4.500-4.500M5 19.500h14',
+  shareIos: 'M12 15V3M8 7l4-4 4 4M8 10H5.500v11h13V10H16',
 } as const
 
 export type IconName = keyof typeof PATHS

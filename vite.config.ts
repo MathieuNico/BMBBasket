@@ -10,6 +10,7 @@ export default defineConfig({
       includeAssets: ['icons/apple-touch-icon.png'],
       workbox: { globPatterns: ['**/*.{js,css,html,png,svg,woff2}'] },
       manifest: {
+        id: '/',
         name: 'BMB Playbook',
         short_name: 'BMB',
         description: 'Systèmes de jeu et séances d’entraînement du Bégrolles le May Basket',

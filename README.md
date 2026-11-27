@@ -100,7 +100,12 @@ L'application doit être en ligne en HTTPS (par exemple Netlify, Vercel ou Cloud
 - dossier publié : `dist` ;
 - variables d'environnement : `VITE_SUPABASE_URL` et `VITE_SUPABASE_ANON_KEY`.
 
-Ensuite, sur le téléphone : ouvrir l'adresse, puis « Ajouter à l'écran d'accueil » (Safari : bouton Partager ; Chrome : menu ⋮).
+L'application est une PWA : elle s'installe depuis le site, sans passer par un magasin d'applications, s'ouvre en plein écran et reste consultable hors réseau. Sur le téléphone, ouvrir l'adresse, puis :
+
+- **Android (Chrome)** : bouton **Installer** affiché dans l'application, ou menu ⋮ > **Installer l'application** ;
+- **iPhone et iPad** : dans Safari, bouton **Partager** (parfois rangé dans le menu « … ») > **Sur l'écran d'accueil**. Se reconnecter à la première ouverture.
+
+La proposition d'installation apparaît sur la page de connexion, à l'accueil des coachs et chez les joueurs ; les coachs la retrouvent aussi dans **Réglages**. Les nouvelles versions publiées s'installent toutes seules à l'ouverture.
 
 ## Logo du club
 

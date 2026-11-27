@@ -260,6 +260,11 @@ input:not([type='checkbox']).team-input { margin-top: 10px; }
 .readonly .button { width: 100%; }
 .coach-link { display: flex; align-items: center; gap: 14px; width: 100%; padding: 12px 14px; text-align: left; }
 
+/* ── Installation ── */
+.install .button { align-self: stretch; }
+.steps { display: flex; flex-direction: column; gap: 8px; margin: 0; padding-left: 20px; line-height: 1.55; font-size: 0.92rem; }
+.steps .icon { width: 18px; height: 18px; vertical-align: text-bottom; color: var(--primary); }
+
 /* ── Terrain et schémas ── */
 .court { display: block; width: 100%; height: auto; border-radius: 14px; border: 1px solid #e8dcc6; user-select: none; }
 .player-view > .court { max-height: max(300px, calc(100dvh - 330px)); border: 0; }

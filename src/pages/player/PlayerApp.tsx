@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { InstallCard } from '../../components/InstallCard'
 import { loadPlayerContent } from '../../data/access'
 import { supabase } from '../../data/cloudRepo'
 import type { PlayerContent } from '../../lib/sharing'
@@ -62,6 +63,7 @@ export function PlayerApp({ userId, name, path, onRemoved }: Props) {
         path={path}
         footer={
           <>
+            <InstallCard />
             <p className="muted center">Connecté : {name}</p>
             <button className="button ghost small" onClick={signOut}>Se déconnecter</button>
           </>
