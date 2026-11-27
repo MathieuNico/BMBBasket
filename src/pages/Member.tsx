@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import { Splash } from '../components/ui'
 import { loadAccess, type Access } from '../data/access'
 import { supabase } from '../data/cloudRepo'
 import { JoinPage } from './JoinPage'
@@ -39,7 +40,7 @@ export function Member({ userId, email, path, coach }: Props) {
       </div>
     )
   }
-  if (!access) return <p className="splash">Chargement…</p>
+  if (!access) return <Splash />
   if (access.role === 'coach') return coach
   if (access.role === 'player') {
     return <PlayerApp userId={userId} name={access.name} path={path} onRemoved={reload} />

@@ -143,7 +143,7 @@ export function PlayerView({ content, base, path, back, banner, footer }: Props)
       return (
         <>
           <Header title={play.name} subtitle={play.category} back={`${base}/systemes`} />
-          <main>
+          <main key={play.id}>
             <PlayPlayer key={play.id} scene={playScene(play)} defense={play.defense} />
             {play.description && (
               <div className="card">
@@ -158,7 +158,8 @@ export function PlayerView({ content, base, path, back, banner, footer }: Props)
     return (
       <>
         <Header title={plays ? 'Systèmes' : 'Séances'} subtitle={content.team} back={back} />
-        <main>
+        {/* la clé rejoue l'animation d'arrivée quand on change d'onglet */}
+        <main key={plays ? 'systemes' : 'seances'}>
           {banner}
           {plays ? <Playbook content={content} base={base} /> : <Sessions content={content} base={base} />}
           {footer}

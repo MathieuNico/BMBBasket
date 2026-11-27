@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { InstallCard } from '../../components/InstallCard'
+import { Splash } from '../../components/ui'
 import { loadPlayerContent } from '../../data/access'
 import { supabase } from '../../data/cloudRepo'
 import type { PlayerContent } from '../../lib/sharing'
@@ -44,7 +45,7 @@ export function PlayerApp({ userId, name, path, onRemoved }: Props) {
   }, [reload])
 
   if (!loaded) {
-    if (!failed) return <p className="splash">Chargement…</p>
+    if (!failed) return <Splash />
     return (
       <div className="login">
         <p className="card" role="alert">Impossible de charger l’équipe. Vérifie ton réseau.</p>

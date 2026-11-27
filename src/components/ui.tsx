@@ -61,6 +61,20 @@ export function EmptyState({ icon, title, text, children }: EmptyProps) {
   )
 }
 
+/** Attente : un ballon qui rebondit. */
+export function Splash() {
+  return (
+    <p className="splash" role="status">
+      <svg viewBox="0 0 40 40" aria-hidden="true">
+        <circle cx="20" cy="20" r="19" />
+        <path fill="none" d="M1 20H39M20 1V39M7 6Q18 20 7 34M33 6Q22 20 33 34" />
+      </svg>
+      <i aria-hidden="true" />
+      Chargement…
+    </p>
+  )
+}
+
 export function Search({ value, onChange, label }: { value: string; onChange(value: string): void; label: string }) {
   return (
     <div className="search">
@@ -140,7 +154,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
           </div>
         </div>
       )}
-      {message && <div className="toast" role="status">{message}</div>}
+      {message && <div key={message} className="toast" role="status">{message}</div>}
     </Context.Provider>
   )
 }

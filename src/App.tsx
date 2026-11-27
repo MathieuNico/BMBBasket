@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Nav, type NavItem } from './components/Nav'
-import { FeedbackProvider, NotFound } from './components/ui'
+import { FeedbackProvider, NotFound, Splash } from './components/ui'
 import { forgetAccess } from './data/access'
 import { clearCache, supabase } from './data/cloudRepo'
 import { StoreProvider, useStore } from './data/store'
@@ -71,7 +71,7 @@ function Screens({ email }: { email?: string }) {
   const [section = 'accueil', ...path] = useRoute()
   const { status, error, offline, reload } = useStore()
 
-  if (status === 'loading') return <p className="splash">Chargement…</p>
+  if (status === 'loading') return <Splash />
   if (status === 'error') {
     return (
       <div className="login">
@@ -158,7 +158,7 @@ export function App() {
   const [section = '', ...path] = useRoute()
   const user = useUser()
 
-  if (supabase && user === undefined) return <p className="splash">Chargement…</p>
+  if (supabase && user === undefined) return <Splash />
   if (supabase && !user) return <AuthPage />
 
   const coach = (

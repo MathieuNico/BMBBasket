@@ -79,8 +79,9 @@ export function PlayPlayer({ scene, defense = true }: { scene: Scene; defense?: 
           <button onClick={() => goTo(index - 1)} disabled={index === 0 && t === 0} aria-label="Temps précédent">
             <Icon name="prev" />
           </button>
-          <button className="play-button" onClick={toggle} aria-label={playing ? 'Pause' : 'Lire'}>
-            <Icon name={playing ? 'pause' : 'play'} />
+          {/* un halo invite à lancer la lecture tant qu'on est au début */}
+          <button className={!playing && index === 0 && t === 0 ? 'play-button invite' : 'play-button'} onClick={toggle} aria-label={playing ? 'Pause' : 'Lire'}>
+            <Icon key={String(playing)} name={playing ? 'pause' : 'play'} />
           </button>
           <button onClick={() => goTo(index + 1)} disabled={index === last} aria-label="Temps suivant">
             <Icon name="next" />
@@ -90,7 +91,7 @@ export function PlayPlayer({ scene, defense = true }: { scene: Scene; defense?: 
           </button>
         </div>
       </div>
-      {step.note && <p className="step-note">{step.note}</p>}
+      {step.note && <p key={step.id} className="step-note">{step.note}</p>}
     </div>
   )
 }

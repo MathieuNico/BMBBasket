@@ -1,0 +1,89 @@
+/* ── Animations : courtes, discrètes, et coupées si le téléphone demande moins de mouvement ── */
+
+@media (prefers-reduced-motion: no-preference) {
+  :root { --ease-out: cubic-bezier(0.22, 1, 0.36, 1); --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+  /* « backwards » : une fois l'entrée terminée, il ne reste aucune transformation,
+     les boutons flottants et les barres fixes restent donc bien placés */
+
+  /* Arrivée sur une page : le contenu monte en cascade */
+  main:not(.editor) > :not(ul, ol, .fab, .overlay),
+  .list > li,
+  .login > * { animation: rise 0.4s var(--ease-out) var(--delay, 0ms) backwards; }
+  .grid > li { animation: pop-in 0.4s var(--ease-out) var(--delay, 0ms) backwards; }
+  :is(main, .list, .grid, .login) > :first-child { --delay: 0ms; }
+  :is(main, .list, .grid, .login) > :nth-child(2) { --delay: 50ms; }
+  :is(main, .list, .grid, .login) > :nth-child(3) { --delay: 100ms; }
+  :is(main, .list, .grid, .login) > :nth-child(4) { --delay: 150ms; }
+  :is(main, .list, .grid, .login) > :nth-child(5) { --delay: 200ms; }
+  :is(main, .list, .grid, .login) > :nth-child(n + 6) { --delay: 240ms; }
+  .editor { animation: fade 0.25s ease backwards; }
+
+  .fab { animation: fab-in 0.45s var(--ease-pop) 0.25s backwards; }
+  .savebar { animation: slide-up 0.3s var(--ease-out) backwards; }
+
+  /* Sous le doigt : les éléments s'enfoncent légèrement */
+  .button, .icon-button, .chip, .fab, .square, .step-dots button, .toolbar button, .transport button,
+  .segmented button, .segmented a, .owners button, .formations button {
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s, scale 0.12s ease;
+  }
+  .nav-icon { transition: background-color 0.15s, color 0.15s; }
+  a.card, button.card { transition: border-color 0.15s, transform 0.15s, scale 0.12s ease; }
+  :is(.button, .icon-button, .chip, .fab, .square, .step-dots button, .toolbar button, .transport button, .formations button):active:not(:disabled) { scale: 0.94; }
+  :is(a.card, button.card, .segmented button, .segmented a, .owners button, .button.primary, .hero .button):active:not(:disabled) { scale: 0.97; }
+
+  /* Navigation et choix : un petit rebond sur ce qui vient d'être sélectionné */
+  .nav a.active .nav-icon { animation: hop 0.45s var(--ease-pop); }
+  .chip.active, .segmented .active, .owners button.active, .step-dots button.active, .toolbar button.active { animation: select 0.3s var(--ease-pop); }
+
+  /* Fenêtres et messages */
+  .overlay { animation: fade 0.2s ease backwards; }
+  .dialog, .sheet { animation: slide-up 0.35s var(--ease-out) backwards; }
+  .toast { animation: toast-in 0.4s var(--ease-pop) backwards; }
+
+  /* Progression et cases cochées */
+  .progress i { animation: grow 0.8s var(--ease-out) 0.3s backwards; transition: width 0.5s var(--ease-out); }
+  .done .check { animation: select 0.45s var(--ease-pop) 0.5s backwards; }
+
+  /* Petites touches de vie */
+  .empty .tile-icon { animation: float 3.2s ease-in-out infinite; }
+  .hero::after { animation: breathe 6s ease-in-out infinite; }
+  .login .logo-badge, .login .logo { animation: logo-in 0.7s var(--ease-pop) backwards; }
+
+  /* Schémas */
+  .actions { animation: fade 0.45s ease backwards; }
+  .step-note { animation: rise 0.35s var(--ease-out) backwards; }
+  .play-button .icon { animation: select 0.3s var(--ease-pop); }
+  .play-button.invite { animation: invite 1.8s ease-out 0.7s 3; }
+
+  .splash svg { animation: bounce 0.55s cubic-bezier(0.5, 0, 1, 0.5) infinite alternate; transform-origin: bottom; }
+  .splash i { animation: shadow 0.55s cubic-bezier(0.5, 0, 1, 0.5) infinite alternate; }
+
+  @media (min-width: 700px) {
+    .dialog, .sheet { animation-name: pop-in; }
+  }
+}
+
+/* translate et scale sont séparés de transform : les positions existantes sont conservées */
+@keyframes rise { from { opacity: 0; translate: 0 14px; } }
+@keyframes fade { from { opacity: 0; } }
+@keyframes pop-in { from { opacity: 0; scale: 0.92; } }
+@keyframes fab-in { from { opacity: 0; scale: 0.5; translate: 0 20px; } }
+@keyframes slide-up { from { opacity: 0; translate: 0 100%; } }
+@keyframes toast-in { from { opacity: 0; translate: 0 18px; } }
+@keyframes select { from { scale: 0.86; } }
+@keyframes hop { 0% { scale: 0.7 1; } 55% { translate: 0 -4px; } }
+@keyframes grow { from { width: 0; } }
+@keyframes float { 50% { translate: 0 -7px; } }
+@keyframes breathe { 50% { scale: 1.14; } }
+@keyframes logo-in { from { opacity: 0; scale: 0.5; rotate: -12deg; } }
+@keyframes invite {
+  0% { box-shadow: 0 8px 18px rgb(37 86 214 / 32%), 0 0 0 0 rgb(37 86 214 / 45%); }
+  100% { box-shadow: 0 8px 18px rgb(37 86 214 / 32%), 0 0 0 16px rgb(37 86 214 / 0%); }
+}
+@keyframes bounce {
+  0% { translate: 0 -34px; }
+  85% { scale: 1; }
+  100% { translate: 0 0; scale: 1.12 0.86; }
+}
+@keyframes shadow { from { opacity: 0.35; scale: 0.55; } }

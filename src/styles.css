@@ -193,7 +193,9 @@ small { font-size: 0.8rem; }
 .empty .tile-icon .icon { width: 30px; height: 30px; }
 .empty p { max-width: 34ch; color: var(--muted); }
 .empty .button { width: 100%; max-width: 320px; }
-.splash { text-align: center; padding-top: 40dvh; color: var(--muted); font-weight: 600; }
+.splash { display: flex; flex-direction: column; align-items: center; padding-top: 36dvh; color: var(--muted); font-weight: 600; }
+.splash svg { width: 44px; height: 44px; fill: #f2762e; stroke: #6b2e07; stroke-width: 1.6; }
+.splash i { width: 34px; height: 6px; margin: 4px 0 14px; border-radius: 50%; background: rgb(17 26 46 / 14%); }
 .offline { background: var(--accent-soft); color: #6b4c00; text-align: center; padding: 8px 12px; font-size: 0.82rem; font-weight: 700; }
 .error { color: var(--danger); font-size: 0.875rem; font-weight: 600; }
 .warning-box { background: var(--accent-soft); border-radius: var(--radius-s); padding: 12px 14px; font-size: 0.875rem; color: #5c4200; }
@@ -425,8 +427,4 @@ p.card { padding: 16px; }
   .grid { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
   .player-view { max-width: 620px; align-self: center; }
   .toast { bottom: 32px; }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .button, .chip, .toolbar button, .nav-icon, .segmented button { transition: background-color 0.15s, border-color 0.15s, color 0.15s; }
 }

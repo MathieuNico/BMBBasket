@@ -58,7 +58,7 @@ export function Diagram({ state, step, positions = state.positions, balls, cones
         </g>
       ))}
       {step && (
-        <g className={faded ? 'actions faded' : 'actions'}>
+        <g key={step.id} className={faded ? 'actions faded' : 'actions'}>
           {step.actions
             .filter((a) => defense || a.player[0] !== 'X')
             .map((a) => (
